@@ -5,6 +5,9 @@
   "type": "module",
   "sideEffects": false,
   "license": "MIT",
+  "publishConfig": {
+    "access": "public"
+  },
   "author": "Koreh Andrei",
   "repository": {
     "type": "git",
