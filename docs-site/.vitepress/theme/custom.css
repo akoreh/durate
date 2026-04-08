@@ -1,0 +1,86 @@
+/* Gruvbox theme overrides for VitePress */
+
+/* Light mode */
+:root {
+  --vp-c-bg: #fbf1c7;
+  --vp-c-bg-alt: #f2e5bc;
+  --vp-c-bg-elv: #ebdbb2;
+  --vp-c-bg-soft: #ebdbb2;
+
+  --vp-c-text-1: #3c3836;
+  --vp-c-text-2: #504945;
+  --vp-c-text-3: #665c54;
+
+  --vp-c-brand-1: #d79921;
+  --vp-c-brand-2: #b57614;
+  --vp-c-brand-3: #d79921;
+
+  --vp-c-divider: #d5c4a1;
+  --vp-code-block-bg: #f9f5d7;
+
+  --vp-button-brand-bg: #d79921;
+  --vp-button-brand-text: #1d2021;
+  --vp-button-alt-bg: #ebdbb2;
+  --vp-button-alt-text: #3c3836;
+
+  --vp-sidebar-bg-color: #f2e5bc;
+
+  --vp-home-hero-name-color: #d79921;
+}
+
+/* Dark mode */
+.dark {
+  --vp-c-bg: #282828;
+  --vp-c-bg-alt: #1d2021;
+  --vp-c-bg-elv: #3c3836;
+  --vp-c-bg-soft: #3c3836;
+
+  --vp-c-text-1: #ebdbb2;
+  --vp-c-text-2: #d5c4a1;
+  --vp-c-text-3: #a89984;
+
+  --vp-c-brand-1: #fabd2f;
+  --vp-c-brand-2: #d79921;
+  --vp-c-brand-3: #fabd2f;
+
+  --vp-c-divider: #504945;
+  --vp-code-block-bg: #1d2021;
+
+  --vp-button-brand-bg: #fabd2f;
+  --vp-button-brand-text: #1d2021;
+  --vp-button-alt-bg: #3c3836;
+  --vp-button-alt-text: #ebdbb2;
+
+  --vp-sidebar-bg-color: #1d2021;
+
+  --vp-home-hero-name-color: #fabd2f;
+}
+
+/* Hero name: solid color, no gradient */
+.VPHero .name {
+  background: none !important;
+  -webkit-background-clip: unset !important;
+  background-clip: unset !important;
+  -webkit-text-fill-color: var(--vp-home-hero-name-color) !important;
+  color: var(--vp-home-hero-name-color) !important;
+}
+
+/* Badge row on homepage */
+.badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 1.5rem 0;
+  justify-content: center;
+}
+
+.badges span {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  border-radius: 9999px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  background: var(--vp-c-bg-elv);
+  color: var(--vp-c-text-2);
+  border: 1px solid var(--vp-c-divider);
+}

@@ -1,0 +1,607 @@
+# durate
+
+> Tiny millisecond conversion utility. Drop-in `ms` replacement with better types and more units. Zero dependencies. < 3 kB brotli.
+
+## Install
+
+```
+npm install durate
+```
+
+## Quick Start
+
+```ts
+import durate from 'durate';
+
+durate('2 days')                     // 172_800_000
+durate(172_800_000)                  // '2d'
+durate(172_800_000, { long: true })  // '2 days'
+```
+
+## Named Exports
+
+```ts
+import { parse, parseStrict, format, durate, toUnit, parseISO, formatISO, add, subtract, multiply, divide, gt, lt, eq, gte, lte, MAX_TIMEOUT } from 'durate';
+```
+
+| Export        | Input            | Output    | Description                                         |
+|---------------|------------------|-----------|-----------------------------------------------------|
+| `parse`       | `string`         | `number`  | Returns `NaN` on failure                            |
+| `parseStrict` | `DurationString` | `number`  | Compile-time typed input, same runtime as `parse`   |
+| `format`      | `number`         | `string`  | Number to human-readable string                     |
+| `durate`      | both             | both      | Bidirectional — same as default export              |
+| `toUnit`      | `string \| number`, `string` | `number` | Convert duration to specific unit        |
+| `parseISO`    | `string`         | `number`  | Parse ISO 8601 duration, returns `NaN` on failure   |
+| `formatISO`   | `number`         | `string`  | Format ms as ISO 8601 duration string               |
+| `add`         | `...durations`   | `number`  | Sum durations, returns ms. NaN if any invalid       |
+| `subtract`    | `...durations`   | `number`  | Subtract from first, returns ms. NaN if any invalid |
+| `multiply`    | `duration, ...scalars` | `number` | Multiply duration by scalars in order. NaN if invalid |
+| `divide`      | `duration, ...scalars` | `number` | Divide duration by scalars in order. NaN if invalid or zero divisor |
+| `gt`          | `a, b`           | `boolean` | a > b. false if either NaN                          |
+| `lt`          | `a, b`           | `boolean` | a < b. false if either NaN                          |
+| `eq`          | `a, b`           | `boolean` | a === b. false if either NaN                        |
+| `gte`         | `a, b`           | `boolean` | a >= b. false if either NaN                         |
+| `lte`         | `a, b`           | `boolean` | a <= b. false if either NaN                         |
+| `MAX_TIMEOUT` | —                | `number`  | `2_147_483_647` (2^31 - 1 ms), max for `setTimeout` |
+
+---
+
+## parse
+
+Converts a duration string to milliseconds. Supports single units, compound units, and ISO 8601 duration strings (auto-detected). Returns `NaN` for unrecognized input. Throws for non-string, empty string, strings longer than 100 characters, or results exceeding `Number.MAX_SAFE_INTEGER`.
+
+```ts
+parse('1h')              // 3_600_000
+parse('5 minutes')       // 300_000
+parse('1h 30m')          // 5_400_000 (compound)
+parse('2d 6h 30m')       // 196_200_000 (compound)
+parse('.5s')             // 500
+parse('-1s')             // -1_000
+parse('PT1H30M')         // 5_400_000 (ISO 8601 auto-detected)
+parse('P1D')             // 86_400_000 (ISO 8601 auto-detected)
+parse('garbage')         // NaN
+
+// IMPORTANT: bare numbers without a unit default to milliseconds
+parse('100')             // 100 (treated as 100ms, NOT seconds)
+parse('0')               // 0
+```
+
+### Output unit option
+
+```ts
+parse('5m', { unit: 's' })    // 300
+parse('500ms', { unit: 's' }) // 0.5
+```
+
+### Strict mode
+
+```ts
+parse('garbage', { strict: true })   // throws instead of NaN
+```
+
+### Timer safety
+
+`setTimeout` / `setInterval` overflow at 2^31 - 1 ms (~24.85 days). Use `safeForTimer` to guard against this:
+
+```ts
+parse('1mo', { safeForTimer: 'throw' })   // throws
+parse('1mo', { safeForTimer: 'clamp' })   // 2_147_483_647 (MAX_TIMEOUT)
+parse('1h', { safeForTimer: 'throw' })    // 3_600_000 (within range, no effect)
+```
+
+`MAX_TIMEOUT` constant (2_147_483_647) is exported for manual checks.
+
+### Error handling
+
+```ts
+parse('garbage')                         // NaN
+parse('garbage', { strict: true })       // throws
+parse('')                                // throws (empty string)
+parse(null)                              // throws (non-string)
+parse('x'.repeat(101))                   // throws (> 100 chars)
+parse('9'.repeat(20) + 'y')             // throws (exceeds MAX_SAFE_INTEGER)
+parse('1mo', { safeForTimer: 'throw' }) // throws (exceeds MAX_TIMEOUT)
+parse('1mo', { safeForTimer: 'clamp' }) // 2_147_483_647 (clamped)
+```
+
+---
+
+## parseStrict
+
+**Compile-time only strictness** — the input parameter is typed as `DurationString` so TypeScript rejects invalid string literals before the code runs. At runtime, `parseStrict` calls `parse` directly — it returns `NaN` for unrecognized input, same as `parse`. The name refers to type-level strictness, not runtime throwing.
+
+```ts
+parseStrict('5m')          // 300_000
+parseStrict('garbage')     // TypeScript compile error
+```
+
+---
+
+## format
+
+Converts milliseconds to a human-readable duration string. Supports compound and precision output. Throws for non-finite numbers or values exceeding `Number.MAX_SAFE_INTEGER`.
+
+```ts
+format(3_600_000)                   // '1h'
+format(3_600_000, { long: true })   // '1 hour'
+format(7_200_000, { long: true })   // '2 hours'
+format(500)                         // '500ms'
+format(-3_600_000)                  // '-1h'
+```
+
+Pluralization at >= 1.5x the unit value.
+
+### Compound format
+
+```ts
+format(5_425_000, { compound: true })                    // '1h 30m 25s'
+format(5_425_000, { compound: true, long: true })        // '1 hour 30 minutes 25 seconds'
+format(5_425_000, { compound: true, parts: 2 })          // '1h 30m'
+format(-5_400_000, { compound: true })                   // '-1h 30m'
+```
+
+### Precision format
+
+```ts
+format(5_400_000, { precision: 1 })   // '1.5h'
+format(5_425_000, { precision: 2 })   // '1.51h'
+format(90_000, { precision: 1 })      // '1.5m'
+```
+
+### Template format
+
+Format string with tokens. Brackets escape literal text. Values are remainder-based.
+
+```ts
+format(5_425_000, { template: 'HH:mm:ss' })          // '01:30:25'
+format(5_425_000, { template: 'H[h] m[m] s[s]' })    // '1h 30m 25s'
+format(90_061_500, { template: 'D[d] HH:mm:ss' })    // '1d 01:01:01'
+format(1_500, { template: 's.SSS' })                  // '1.005'
+format(-3_661_000, { template: 'H:mm:ss' })           // '-1:01:01'
+```
+
+Tokens: `D`/`DD` (days), `H`/`HH` (hours), `m`/`mm` (minutes), `s`/`ss` (seconds), `S`/`SS`/`SSS` (milliseconds). Double-letter pads with zeros. `[text]` escapes literals. If a larger unit token is absent, the next unit shows the total (e.g. no `D` → `H` shows total hours).
+
+### Errors
+
+```ts
+format(NaN)                         // throws
+format(Infinity)                    // throws
+format(Number.MAX_SAFE_INTEGER + 1) // throws
+```
+
+---
+
+## durate (default export)
+
+Bidirectional — string in, number out; number in, string out.
+
+```ts
+durate('2 days')                     // 172_800_000
+durate(172_800_000)                  // '2d'
+durate(172_800_000, { long: true })  // '2 days'
+```
+
+---
+
+## toUnit
+
+Convert a duration to a specific unit. Accepts a duration string (parsed via `parse`) or a raw millisecond number, and divides by the target unit's multiplier. Never throws — returns `NaN` if the input is unparseable or the target unit is unrecognised.
+
+```ts
+function toUnit(value: string | number, unit: string): number
+```
+
+### Examples
+
+```ts
+toUnit('2h', 'minutes')       // 120
+toUnit(86_400_000, 'h')       // 24
+toUnit('1h 30m', 'm')         // 90
+toUnit('1w', 'days')          // 7
+toUnit('1y', 'months')        // 12
+toUnit(3_600_000, 'seconds')  // 3600
+toUnit('500ms', 's')          // 0.5
+toUnit('1.5h', 'm')           // 90
+toUnit('5000', 's')           // 5 (bare number = ms)
+
+// Number input (milliseconds)
+toUnit(3_600_000, 'minutes')  // 60
+toUnit(0, 'hours')            // 0
+toUnit(500, 's')              // 0.5
+
+// Compound strings
+toUnit('1h 30m', 'minutes')   // 90
+toUnit('2d 6h', 'hours')      // 54
+
+// Negative durations
+toUnit('-2h', 'minutes')      // -120
+toUnit(-3_600_000, 'h')       // -1
+
+// Fractional results (not rounded)
+toUnit('30m', 'h')            // 0.5
+toUnit('1h', 'd')             // 0.041666...
+
+// Case-insensitive target
+toUnit('1h', 'MINUTES')       // 60
+toUnit('1h', 'Minutes')       // 60
+```
+
+### Error handling
+
+```ts
+toUnit('garbage', 'ms')       // NaN (unparseable value)
+toUnit('1h', 'foobar')        // NaN (unknown target unit)
+toUnit('', 'ms')              // NaN (empty string)
+toUnit(NaN, 's')              // NaN
+toUnit(Infinity, 's')         // Infinity
+```
+
+Target unit accepts any unit name or alias from the supported units table. Case-insensitive.
+
+---
+
+## parseISO
+
+Parse an ISO 8601 duration string (`P1DT12H`, `PT1H30M`) into milliseconds. Returns `NaN` for invalid or non-ISO strings, never throws. Does not support negative durations (not part of ISO 8601 standard). Non-string input returns `NaN`. Supports fractional values.
+
+```ts
+function parseISO(str: string): number
+```
+
+### Examples
+
+```ts
+parseISO('PT1H30M')         // 5_400_000
+parseISO('P1DT12H')         // 129_600_000
+parseISO('P1Y2M3DT4H5M6S') // 37_091_106_000
+parseISO('PT0.5S')          // 500
+parseISO('P1W')             // 604_800_000
+parseISO('P1D')             // 86_400_000
+```
+
+### Error handling
+
+```ts
+parseISO('not iso')          // NaN
+parseISO('')                 // NaN
+parseISO('P')                // NaN (no components)
+parseISO(123)                // NaN (non-string)
+parseISO(null)               // NaN (non-string)
+```
+
+Note: `parse()` auto-detects ISO 8601 strings, so `parse('PT1H30M')` works without calling `parseISO` directly.
+
+---
+
+## formatISO
+
+Format a millisecond value as an ISO 8601 duration string. Uses days as the largest unit (no weeks/months/years in output) for unambiguous round-tripping. Throws for non-finite numbers.
+
+```ts
+function formatISO(ms: number): string
+```
+
+### Examples
+
+```ts
+formatISO(5_400_000)        // 'PT1H30M'
+formatISO(129_600_000)      // 'P1DT12H'
+formatISO(500)              // 'PT0.5S'
+formatISO(0)                // 'PT0S'
+formatISO(-3_600_000)       // '-PT1H'
+formatISO(90_061_500)       // 'P1DT1H1M1.5S'
+```
+
+### Negative values
+
+Negative durations are prefixed with `-`:
+
+```ts
+formatISO(-3_600_000)       // '-PT1H'
+formatISO(-86_400_000)      // '-P1D'
+```
+
+### Sub-second precision
+
+Sub-second values are formatted to up to 3 decimal places:
+
+```ts
+formatISO(500)              // 'PT0.5S'
+formatISO(1_500)            // 'PT1.5S'
+formatISO(100)              // 'PT0.1S'
+```
+
+### Error handling
+
+```ts
+formatISO(NaN)              // throws
+formatISO(Infinity)         // throws
+formatISO('1h')             // throws (non-number)
+```
+
+---
+
+## Arithmetic
+
+Math operations on durations. All accept `string | number` inputs (strings are parsed via `parse`). All return milliseconds as a `number`. Returns `NaN` if any input is invalid.
+
+### add
+
+Sum any number of durations. Accepts variadic arguments or a single array.
+
+```ts
+function add(...durations: (string | number | (string | number)[])[]): number
+```
+
+```ts
+add('1h', '30m')              // 5_400_000
+add('1h', '30m', '15s')      // 5_415_000
+add(['1h', '30m'])            // 5_400_000
+add('1h', 1000)              // 3_601_000
+```
+
+Error handling: returns `NaN` if any duration is unparseable.
+
+```ts
+add('1h', 'garbage')          // NaN
+```
+
+### subtract
+
+Subtract durations from the first value. Accepts variadic arguments or a single array.
+
+```ts
+function subtract(...durations: (string | number | (string | number)[])[]): number
+```
+
+```ts
+subtract('2d', '6h')          // 151_200_000
+subtract('1d', '2h', '30m')  // 77_400_000
+subtract(['2d', '6h'])        // 151_200_000
+```
+
+Error handling: returns `NaN` if any duration is unparseable.
+
+```ts
+subtract('2d', 'garbage')     // NaN
+```
+
+### multiply
+
+Multiply a duration by one or more scalar numbers, applied in order.
+
+```ts
+function multiply(value: string | number, ...scalars: number[]): number
+```
+
+```ts
+multiply('1h', 2)             // 7_200_000
+multiply('1h', 2, 3)          // 21_600_000
+multiply('2h', 0.5)          // 3_600_000
+```
+
+Error handling: returns `NaN` if the duration is unparseable or any scalar is not a number.
+
+```ts
+multiply('garbage', 2)        // NaN
+```
+
+### divide
+
+Divide a duration by one or more scalar numbers, applied in order.
+
+```ts
+function divide(value: string | number, ...scalars: number[]): number
+```
+
+```ts
+divide('2h', 2)               // 3_600_000
+divide('1d', 2, 3)            // 14_400_000
+```
+
+Error handling: returns `NaN` if the duration is unparseable, any divisor is not a number, or any divisor is zero.
+
+```ts
+divide('1h', 0)               // NaN
+divide('garbage', 2)          // NaN
+```
+
+---
+
+## Comparison
+
+Compare two durations. All accept `string | number` inputs (strings are parsed via `parse`). All return `boolean`. Returns `false` if either value is `NaN` (unparseable).
+
+### gt
+
+Returns `true` if `a` is strictly greater than `b`.
+
+```ts
+function gt(a: string | number, b: string | number): boolean
+```
+
+```ts
+gt('1h', '30m')               // true
+gt('30m', '1h')               // false
+gt('garbage', '1h')           // false
+```
+
+### lt
+
+Returns `true` if `a` is strictly less than `b`.
+
+```ts
+function lt(a: string | number, b: string | number): boolean
+```
+
+```ts
+lt('30m', '1h')               // true
+lt('1h', '30m')               // false
+lt('garbage', '1h')           // false
+```
+
+### eq
+
+Returns `true` if `a` and `b` are exactly equal in milliseconds.
+
+```ts
+function eq(a: string | number, b: string | number): boolean
+```
+
+```ts
+eq('60m', '1h')               // true
+eq('1h', '30m')               // false
+eq('garbage', '1h')           // false
+```
+
+### gte
+
+Returns `true` if `a` is greater than or equal to `b`.
+
+```ts
+function gte(a: string | number, b: string | number): boolean
+```
+
+```ts
+gte('1h', '1h')               // true
+gte('1h', '30m')              // true
+gte('30m', '1h')              // false
+gte('garbage', '1h')          // false
+```
+
+### lte
+
+Returns `true` if `a` is less than or equal to `b`.
+
+```ts
+function lte(a: string | number, b: string | number): boolean
+```
+
+```ts
+lte('30m', '1h')              // true
+lte('1h', '1h')               // true
+lte('1h', '30m')              // false
+lte('garbage', '1h')          // false
+```
+
+---
+
+## Supported Units
+
+| Unit         | Short | Aliases                                         | Constant (ms)               |
+|--------------|-------|-------------------------------------------------|-----------------------------|
+| Years        | `y`   | `yr`, `yrs`, `year`, `years`                    | 365.25 * 24 * 60 * 60 * 1000 |
+| Months       | `mo`  | `mon`, `mons`, `month`, `months`                | year / 12                   |
+| Weeks        | `w`   | `week`, `weeks`                                 | 7 * 24 * 60 * 60 * 1000    |
+| Days         | `d`   | `day`, `days`                                   | 24 * 60 * 60 * 1000        |
+| Hours        | `h`   | `hr`, `hrs`, `hour`, `hours`                    | 60 * 60 * 1000             |
+| Minutes      | `m`   | `min`, `mins`, `minute`, `minutes`              | 60 * 1000                  |
+| Seconds      | `s`   | `sec`, `secs`, `second`, `seconds`              | 1000                       |
+| Milliseconds | `ms`  | `msec`, `msecs`, `millisecond`, `milliseconds`  | 1                          |
+
+All units are case-insensitive.
+
+---
+
+## TypeScript Types
+
+```ts
+import type { DurationString, FormatOptions, ParseOptions } from 'durate';
+```
+
+### DurationString
+
+Branded template literal type — catches invalid duration strings at compile time.
+
+```ts
+type DurationString =
+  | `${number}`
+  | `${number}${UnitAnyCase}`
+  | `${number} ${UnitAnyCase}`;
+```
+
+### FormatOptions
+
+```ts
+interface FormatOptions {
+  long?: boolean;       // 'minute' vs 'm'. Default: false
+  compound?: boolean;   // '1h 30m 25s' vs '2h'. Default: false
+  parts?: number;       // max units in compound. Default: all
+  precision?: number;   // decimal places for single-unit. Default: 0 (round)
+  template?: string;    // format string with tokens: 'HH:mm:ss', 'D[d] H[h]', etc.
+}
+```
+
+### ParseOptions
+
+```ts
+interface ParseOptions {
+  unit?: 'ms' | 's';                  // output unit. Default: 'ms'
+  strict?: boolean;                    // throw on invalid input instead of NaN. Default: false
+  safeForTimer?: 'throw' | 'clamp';   // guard against setTimeout/setInterval overflow
+}
+```
+
+### MAX_TIMEOUT
+
+Constant: `2_147_483_647` (2^31 - 1 ms). Max value for `setTimeout` / `setInterval`.
+
+```ts
+import { MAX_TIMEOUT } from 'durate';
+```
+
+---
+
+## Migration from ms
+
+### v2 (default export)
+
+```diff
+- const ms = require('ms');
++ const durate = require('durate');
+
+- ms('2 days')
++ durate('2 days')
+```
+
+Or alias it:
+
+```diff
+- const ms = require('ms');
++ const ms = require('durate');
+// everything else unchanged
+```
+
+### v3 (named exports)
+
+```diff
+- import { ms, parse, format } from 'ms';
++ import { durate, parse, format } from 'durate';
+```
+
+`parse`, `parseStrict`, and `format` have identical signatures. The only rename is `ms()` to `durate()`.
+
+---
+
+## Browser (script tag)
+
+```html
+<script src="https://unpkg.com/durate"></script>
+<script>
+  durate('2 days')    // 172_800_000
+  durate(172_800_000) // '2d'
+</script>
+```
+
+---
+
+## Module Formats
+
+| File                    | Format | Use Case                  |
+|-------------------------|--------|---------------------------|
+| `dist/index.mjs`       | ESM    | `import` in Node/bundlers |
+| `dist/index.cjs`       | CJS    | `require()` in Node       |
+| `dist/index.global.js` | IIFE   | `<script>` tags, CDN      |
+| `dist/index.d.ts`      | Types  | ESM TypeScript            |
+| `dist/index.d.cts`     | Types  | CJS TypeScript            |
