@@ -1,0 +1,13 @@
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      eslint:
+        patterns: ["eslint*", "@eslint/*", "typescript-eslint"]
+      testing:
+        patterns: ["vitest", "@stryker-mutator/*"]
+      build:
+        patterns: ["tsup", "typescript"]

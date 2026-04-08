@@ -1,0 +1,95 @@
+{
+  "name": "durate",
+  "version": "1.0.0",
+  "description": "Tiny millisecond conversion utility. Drop-in ms replacement with better types and more units.",
+  "type": "module",
+  "sideEffects": false,
+  "license": "MIT",
+  "author": "Koreh Andrei",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/akoreh/durate.git"
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "unpkg": "./dist/index.global.js",
+  "jsdelivr": "./dist/index.global.js",
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "ms",
+    "milliseconds",
+    "duration",
+    "time",
+    "convert",
+    "parse",
+    "format"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:mutate": "stryker run",
+    "size": "size-limit",
+    "lint": "eslint src/ tests/",
+    "lint:fix": "eslint src/ tests/ --fix",
+    "format": "prettier --write src/ tests/",
+    "format:check": "prettier --check src/ tests/",
+    "typecheck": "tsc --noEmit",
+    "docs": "vitepress dev docs-site",
+    "docs:build": "vitepress build docs-site",
+    "prepublishOnly": "npm run build && npm test && npm run size",
+    "prepare": "node .husky/install.mjs"
+  },
+  "size-limit": [
+    {
+      "name": "full bundle",
+      "path": "dist/index.js",
+      "limit": "3 kB"
+    }
+  ],
+  "lint-staged": {
+    "src/**/*.ts": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "tests/**/*.ts": [
+      "prettier --write",
+      "eslint --fix"
+    ],
+    "*.md": "prettier --write"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@size-limit/file": "12.0.1",
+    "@stryker-mutator/vitest-runner": "9.6.0",
+    "@types/node": "25.5.2",
+    "eslint": "10.2.0",
+    "eslint-config-prettier": "10.1.8",
+    "husky": "9.1.7",
+    "lint-staged": "16.4.0",
+    "prettier": "3.8.1",
+    "size-limit": "12.0.1",
+    "tsup": "8.5.1",
+    "typescript": "6.0.2",
+    "typescript-eslint": "8.58.1",
+    "vitepress": "^1.6.4",
+    "vitest": "4.1.3"
+  }
+}
