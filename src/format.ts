@@ -11,42 +11,28 @@ const units: [number, string, string][] = [
   [s, 's', 'second'],
 ];
 
-function plural(ms: number, msAbs: number, n: number, name: string): DurationString {
-  const isPlural = msAbs >= n * 1.5;
-  return `${Math.round(ms / n)} ${name}${isPlural ? 's' : ''}` as DurationString;
-}
-
-function fmtShort(ms: number): DurationString {
+function fmtSingle(ms: number, long: boolean): DurationString {
   const msAbs = Math.abs(ms);
-
-  for (const [val, short] of units) {
-    if (msAbs >= val) return `${Math.round(ms / val)}${short}` as DurationString;
+  for (const [val, short, name] of units) {
+    if (msAbs >= val) {
+      const rounded = Math.round(ms / val);
+      if (long) {
+        return `${rounded} ${name}${msAbs >= val * 1.5 ? 's' : ''}` as DurationString;
+      }
+      return `${rounded}${short}` as DurationString;
+    }
   }
-
-  return `${ms}ms`;
-}
-
-function fmtLong(ms: number): DurationString {
-  const msAbs = Math.abs(ms);
-
-  for (const [val, , long] of units) {
-    if (msAbs >= val) return plural(ms, msAbs, val, long);
-  }
-
-  return `${ms} ms` as DurationString;
+  return (long ? `${ms} ms` : `${ms}ms`) as DurationString;
 }
 
 function fmtPrecision(ms: number, precision: number): string {
   const msAbs = Math.abs(ms);
-  const safePrecision = Math.max(0, Math.min(100, Math.floor(precision)));
-
+  const safe = Math.max(0, Math.min(100, Math.floor(precision)));
   for (const [val, short] of units) {
     if (msAbs >= val) {
-      const n = ms / val;
-      return `${parseFloat(n.toFixed(safePrecision))}${short}`;
+      return `${parseFloat((ms / val).toFixed(safe))}${short}`;
     }
   }
-
   return `${ms}ms`;
 }
 
@@ -61,79 +47,70 @@ function fmtCompound(ms: number, options: FormatOptions): string {
     if (remaining >= val && parts.length < maxParts) {
       const count = Math.floor(remaining / val);
       remaining -= count * val;
-      if (long) {
-        parts.push(`${count} ${name}${count >= 2 ? 's' : ''}`);
-      } else {
-        parts.push(`${count}${short}`);
-      }
+      parts.push(long ? `${count} ${name}${count >= 2 ? 's' : ''}` : `${count}${short}`);
     }
   }
 
   if (remaining > 0 && parts.length < maxParts) {
     const count = Math.round(remaining);
     if (count > 0) {
-      if (long) {
-        parts.push(`${count} ms`);
-      } else {
-        parts.push(`${count}ms`);
-      }
+      parts.push(long ? `${count} ms` : `${count}ms`);
     }
   }
 
-  if (parts.length === 0) return long ? '0 ms' : '0ms';
-
+  if (parts.length === 0) {
+    return long ? '0 ms' : '0ms';
+  }
   return (neg ? '-' : '') + parts.join(' ');
 }
 
-const tokenD = /DD?(?![^[]*])/;
-const tokenH = /HH?(?![^[]*])/;
-const tokenM = /mm?(?![^[]*])/;
-const tokenS = /ss?(?![^[]*])/;
-const pad2 = (n: number) => String(n).padStart(2, '0');
-const pad3 = (n: number) => String(n).padStart(3, '0');
+// ─── Template formatting ────────────────────────────────────────────────────
+
+const tokenPattern = (c: string) => new RegExp(`${c}${c}?(?![^[]*])`);
+const tokenD = tokenPattern('D');
+const tokenH = tokenPattern('H');
+const tokenM = tokenPattern('m');
+const tokenS = tokenPattern('s');
+const pad = (n: number, w: number) => String(n).padStart(w, '0');
 
 function fmtTemplate(ms: number, template: string): string {
   const neg = ms < 0;
   let remaining = Math.abs(ms);
 
-  // Detect which tokens are present to decide remainder vs total behavior
-  const hasD = tokenD.test(template);
-  const hasH = tokenH.test(template);
-  const hasM = tokenM.test(template);
-  const hasS = tokenS.test(template);
-
-  // Extract components as remainders (top-down)
-  let days = 0;
-  if (hasD) {
-    days = Math.floor(remaining / d);
-    remaining %= d;
-  }
-
-  let hours = 0;
-  if (hasH) {
-    hours = Math.floor(remaining / h);
-    remaining %= h;
-  }
-
-  let minutes = 0;
-  if (hasM) {
-    minutes = Math.floor(remaining / m);
-    remaining %= m;
-  }
-
-  let seconds = 0;
-  if (hasS) {
-    seconds = Math.floor(remaining / s);
-    remaining %= s;
-  }
-
+  // Extract components top-down; mutates `remaining` so each level is a remainder
+  const extract = (re: RegExp, divisor: number) => {
+    if (!re.test(template)) {
+      return 0;
+    }
+    const val = Math.floor(remaining / divisor);
+    remaining %= divisor;
+    return val;
+  };
+  const days = extract(tokenD, d);
+  const hours = extract(tokenH, h);
+  const minutes = extract(tokenM, m);
+  const seconds = extract(tokenS, s);
   const millis = Math.round(remaining);
 
-  // Process template: replace tokens, preserve bracket-escaped literals
+  // Token table — longest first so "SSS" matches before "SS" before "S"
+  const tokens: [string, () => string][] = [
+    ['SSS', () => pad(millis, 3)],
+    ['SS', () => pad(Math.floor(millis / 10), 2)],
+    ['DD', () => pad(days, 2)],
+    ['HH', () => pad(hours, 2)],
+    ['mm', () => pad(minutes, 2)],
+    ['ss', () => pad(seconds, 2)],
+    ['S', () => String(millis)],
+    ['D', () => String(days)],
+    ['H', () => String(hours)],
+    ['m', () => String(minutes)],
+    ['s', () => String(seconds)],
+  ];
+
   let result = '';
   let i = 0;
   while (i < template.length) {
-    // Escaped literal: [...]
+    // Bracket-escaped literal: [...]
     if (template[i] === '[') {
       const close = template.indexOf(']', i + 1);
       if (close !== -1) {
@@ -143,43 +120,18 @@ function fmtTemplate(ms: number, template: string): string {
       }
     }
 
-    // Tokens (check longest first)
-    if (template.slice(i, i + 3) === 'SSS') {
-      result += pad3(millis);
-      i += 3;
-    } else if (template.slice(i, i + 2) === 'SS') {
-      result += pad2(Math.floor(millis / 10));
-      i += 2;
-    } else if (template[i] === 'S' && template[i + 1] !== 'S') {
-      result += String(millis);
-      i += 1;
-    } else if (template.slice(i, i + 2) === 'DD') {
-      result += pad2(days);
-      i += 2;
-    } else if (template[i] === 'D' && template[i + 1] !== 'D') {
-      result += String(days);
-      i += 1;
-    } else if (template.slice(i, i + 2) === 'HH') {
-      result += pad2(hours);
-      i += 2;
-    } else if (template[i] === 'H' && template[i + 1] !== 'H') {
-      result += String(hours);
-      i += 1;
-    } else if (template.slice(i, i + 2) === 'mm') {
-      result += pad2(minutes);
-      i += 2;
-    } else if (template[i] === 'm' && template[i + 1] !== 'm') {
-      result += String(minutes);
-      i += 1;
-    } else if (template.slice(i, i + 2) === 'ss') {
-      result += pad2(seconds);
-      i += 2;
-    } else if (template[i] === 's' && template[i + 1] !== 's') {
-      result += String(seconds);
-      i += 1;
-    } else {
+    let matched = false;
+    for (const [tok, fn] of tokens) {
+      if (template.startsWith(tok, i)) {
+        result += fn();
+        i += tok.length;
+        matched = true;
+        break;
+      }
+    }
+    if (!matched) {
       result += template[i];
-      i += 1;
+      i++;
     }
   }
 
@@ -227,5 +179,5 @@ export function format(ms: number, options?: FormatOptions): string {
     return fmtPrecision(ms, options.precision);
   }
 
-  return options?.long ? fmtLong(ms) : fmtShort(ms);
+  return fmtSingle(ms, options?.long ?? false);
 }

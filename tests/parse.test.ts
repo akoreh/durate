@@ -2,204 +2,36 @@ import { describe, test, expect } from 'vitest';
 import { parse, parseStrict, MAX_TIMEOUT } from '../src';
 
 // ─── Precomputed constants (duplicated on purpose — test must not trust src) ──
+const S = 1_000;
 const M = 60_000;
 const H = 3_600_000;
 const D = 86_400_000;
+const W = D * 7;
 const Y = 365.25 * 24 * 60 * 60 * 1_000; // 31_557_600_000
 const MO = Y / 12; // 2_629_800_000
 
 describe('parse', () => {
-  describe('milliseconds', () => {
-    test('should parse "100" as 100ms (bare number defaults to ms)', () => {
-      expect(parse('100')).toBe(100);
-    });
-
-    test('should parse "500ms"', () => {
-      expect(parse('500ms')).toBe(500);
-    });
-
-    test('should parse "100msec"', () => {
-      expect(parse('100msec')).toBe(100);
-    });
-
-    test('should parse "100msecs"', () => {
-      expect(parse('100msecs')).toBe(100);
-    });
-
-    test('should parse "250millisecond"', () => {
-      expect(parse('250millisecond')).toBe(250);
-    });
-
-    test('should parse "250milliseconds"', () => {
-      expect(parse('250milliseconds')).toBe(250);
-    });
-  });
-
-  describe('seconds', () => {
-    test('should parse "1s" as 1000ms', () => {
-      expect(parse('1s')).toBe(1_000);
-    });
-
-    test('should parse "5sec"', () => {
-      expect(parse('5sec')).toBe(5_000);
-    });
-
-    test('should parse "5secs"', () => {
-      expect(parse('5secs')).toBe(5_000);
-    });
-
-    test('should parse "1second"', () => {
-      expect(parse('1second')).toBe(1_000);
-    });
-
-    test('should parse "2seconds"', () => {
-      expect(parse('2seconds')).toBe(2_000);
-    });
-
-    test('should parse "0.5s" as 500ms', () => {
-      expect(parse('0.5s')).toBe(500);
-    });
-  });
-
-  describe('minutes', () => {
-    test('should parse "1m" as 60000ms', () => {
-      expect(parse('1m')).toBe(60_000);
-    });
-
-    test('should parse "5m" as 300000ms', () => {
-      expect(parse('5m')).toBe(300_000);
-    });
-
-    test('should parse "1min"', () => {
-      expect(parse('1min')).toBe(60_000);
-    });
-
-    test('should parse "1mins"', () => {
-      expect(parse('1mins')).toBe(60_000);
-    });
-
-    test('should parse "1minute"', () => {
-      expect(parse('1minute')).toBe(60_000);
-    });
-
-    test('should parse "2minutes"', () => {
-      expect(parse('2minutes')).toBe(120_000);
-    });
-
-    test('should parse "15m"', () => {
-      expect(parse('15m')).toBe(900_000);
-    });
-  });
-
-  describe('hours', () => {
-    test('should parse "1h" as 3600000ms', () => {
-      expect(parse('1h')).toBe(3_600_000);
-    });
-
-    test('should parse "1hr"', () => {
-      expect(parse('1hr')).toBe(3_600_000);
-    });
-
-    test('should parse "1hrs"', () => {
-      expect(parse('1hrs')).toBe(3_600_000);
-    });
-
-    test('should parse "1hour"', () => {
-      expect(parse('1hour')).toBe(3_600_000);
-    });
-
-    test('should parse "2hours"', () => {
-      expect(parse('2hours')).toBe(7_200_000);
-    });
-
-    test('should parse "0.5h" as 1800000ms', () => {
-      expect(parse('0.5h')).toBe(1_800_000);
-    });
-  });
-
-  describe('days', () => {
-    test('should parse "1d" as 86400000ms', () => {
-      expect(parse('1d')).toBe(86_400_000);
-    });
-
-    test('should parse "1day"', () => {
-      expect(parse('1day')).toBe(86_400_000);
-    });
-
-    test('should parse "2days"', () => {
-      expect(parse('2days')).toBe(172_800_000);
-    });
-
-    test('should parse "7d"', () => {
-      expect(parse('7d')).toBe(604_800_000);
-    });
-  });
-
-  describe('weeks', () => {
-    test('should parse "1w" as 604800000ms', () => {
-      expect(parse('1w')).toBe(604_800_000);
-    });
-
-    test('should parse "1week"', () => {
-      expect(parse('1week')).toBe(604_800_000);
-    });
-
-    test('should parse "2weeks"', () => {
-      expect(parse('2weeks')).toBe(1_209_600_000);
-    });
-  });
-
-  describe('months', () => {
-    test('should parse "1mo"', () => {
-      const expected = (365.25 / 12) * 24 * 60 * 60 * 1000;
-      expect(parse('1mo')).toBe(expected);
-    });
-
-    test('should parse "1month"', () => {
-      const expected = (365.25 / 12) * 24 * 60 * 60 * 1000;
-      expect(parse('1month')).toBe(expected);
-    });
-
-    test('should parse "3months"', () => {
-      const expected = 3 * (365.25 / 12) * 24 * 60 * 60 * 1000;
-      expect(parse('3months')).toBe(expected);
-    });
-
-    test('should parse "1mon"', () => {
-      const expected = (365.25 / 12) * 24 * 60 * 60 * 1000;
-      expect(parse('1mon')).toBe(expected);
-    });
-
-    test('should parse "6mons"', () => {
-      const expected = 6 * (365.25 / 12) * 24 * 60 * 60 * 1000;
-      expect(parse('6mons')).toBe(expected);
-    });
-  });
-
-  describe('years', () => {
-    test('should parse "1y" as 365.25 days', () => {
-      const expected = 365.25 * 24 * 60 * 60 * 1000;
-      expect(parse('1y')).toBe(expected);
-    });
-
-    test('should parse "1yr"', () => {
-      const expected = 365.25 * 24 * 60 * 60 * 1000;
-      expect(parse('1yr')).toBe(expected);
-    });
-
-    test('should parse "1yrs"', () => {
-      const expected = 365.25 * 24 * 60 * 60 * 1000;
-      expect(parse('1yrs')).toBe(expected);
-    });
-
-    test('should parse "1year"', () => {
-      const expected = 365.25 * 24 * 60 * 60 * 1000;
-      expect(parse('1year')).toBe(expected);
-    });
-
-    test('should parse "2years"', () => {
-      const expected = 2 * 365.25 * 24 * 60 * 60 * 1000;
-      expect(parse('2years')).toBe(expected);
+  describe('unit parsing', () => {
+    test.each([
+      // milliseconds
+      ['100', 100], ['500ms', 500], ['100msec', 100], ['100msecs', 100],
+      ['250millisecond', 250], ['250milliseconds', 250],
+      // seconds
+      ['1s', S], ['5sec', 5 * S], ['5secs', 5 * S], ['1second', S], ['2seconds', 2 * S], ['0.5s', 500],
+      // minutes
+      ['1m', M], ['5m', 5 * M], ['1min', M], ['1mins', M], ['1minute', M], ['2minutes', 2 * M], ['15m', 15 * M],
+      // hours
+      ['1h', H], ['1hr', H], ['1hrs', H], ['1hour', H], ['2hours', 2 * H], ['0.5h', H / 2],
+      // days
+      ['1d', D], ['1day', D], ['2days', 2 * D], ['7d', 7 * D],
+      // weeks
+      ['1w', W], ['1week', W], ['2weeks', 2 * W],
+      // months
+      ['1mo', MO], ['1month', MO], ['3months', 3 * MO], ['1mon', MO], ['6mons', 6 * MO],
+      // years
+      ['1y', Y], ['1yr', Y], ['1yrs', Y], ['1year', Y], ['2years', 2 * Y],
+    ])('parse("%s") → %d', (input, expected) => {
+      expect(parse(input)).toBe(expected);
     });
   });
 
@@ -373,164 +205,25 @@ describe('constants verification', () => {
 // 2. PARSE — every unit alias
 // ─────────────────────────────────────────────────────────────────────────────
 describe('parse: every unit alias', () => {
-  describe('millisecond aliases', () => {
-    test('ms returns 1 ms per unit', () => {
-      expect(parse('7ms')).toBe(7);
-    });
-
-    test('msec returns 1 ms per unit', () => {
-      expect(parse('7msec')).toBe(7);
-    });
-
-    test('msecs returns 1 ms per unit', () => {
-      expect(parse('7msecs')).toBe(7);
-    });
-
-    test('millisecond returns 1 ms per unit', () => {
-      expect(parse('7millisecond')).toBe(7);
-    });
-
-    test('milliseconds returns 1 ms per unit', () => {
-      expect(parse('7milliseconds')).toBe(7);
-    });
-  });
-
-  describe('second aliases', () => {
-    test('s returns 1_000 ms per unit', () => {
-      expect(parse('3s')).toBe(3_000);
-    });
-
-    test('sec returns 1_000 ms per unit', () => {
-      expect(parse('3sec')).toBe(3_000);
-    });
-
-    test('secs returns 1_000 ms per unit', () => {
-      expect(parse('3secs')).toBe(3_000);
-    });
-
-    test('second returns 1_000 ms per unit', () => {
-      expect(parse('3second')).toBe(3_000);
-    });
-
-    test('seconds returns 1_000 ms per unit', () => {
-      expect(parse('3seconds')).toBe(3_000);
-    });
-  });
-
-  describe('minute aliases', () => {
-    test('m returns 60_000 ms per unit', () => {
-      expect(parse('2m')).toBe(120_000);
-    });
-
-    test('min returns 60_000 ms per unit', () => {
-      expect(parse('2min')).toBe(120_000);
-    });
-
-    test('mins returns 60_000 ms per unit', () => {
-      expect(parse('2mins')).toBe(120_000);
-    });
-
-    test('minute returns 60_000 ms per unit', () => {
-      expect(parse('2minute')).toBe(120_000);
-    });
-
-    test('minutes returns 60_000 ms per unit', () => {
-      expect(parse('2minutes')).toBe(120_000);
-    });
-  });
-
-  describe('hour aliases', () => {
-    test('h returns 3_600_000 ms per unit', () => {
-      expect(parse('2h')).toBe(7_200_000);
-    });
-
-    test('hr returns 3_600_000 ms per unit', () => {
-      expect(parse('2hr')).toBe(7_200_000);
-    });
-
-    test('hrs returns 3_600_000 ms per unit', () => {
-      expect(parse('2hrs')).toBe(7_200_000);
-    });
-
-    test('hour returns 3_600_000 ms per unit', () => {
-      expect(parse('2hour')).toBe(7_200_000);
-    });
-
-    test('hours returns 3_600_000 ms per unit', () => {
-      expect(parse('2hours')).toBe(7_200_000);
-    });
-  });
-
-  describe('day aliases', () => {
-    test('d returns 86_400_000 ms per unit', () => {
-      expect(parse('2d')).toBe(172_800_000);
-    });
-
-    test('day returns 86_400_000 ms per unit', () => {
-      expect(parse('2day')).toBe(172_800_000);
-    });
-
-    test('days returns 86_400_000 ms per unit', () => {
-      expect(parse('2days')).toBe(172_800_000);
-    });
-  });
-
-  describe('week aliases', () => {
-    test('w returns 604_800_000 ms per unit', () => {
-      expect(parse('2w')).toBe(1_209_600_000);
-    });
-
-    test('week returns 604_800_000 ms per unit', () => {
-      expect(parse('2week')).toBe(1_209_600_000);
-    });
-
-    test('weeks returns 604_800_000 ms per unit', () => {
-      expect(parse('2weeks')).toBe(1_209_600_000);
-    });
-  });
-
-  describe('month aliases', () => {
-    test('mo returns MO ms per unit', () => {
-      expect(parse('2mo')).toBe(2 * MO);
-    });
-
-    test('mon returns MO ms per unit', () => {
-      expect(parse('2mon')).toBe(2 * MO);
-    });
-
-    test('mons returns MO ms per unit', () => {
-      expect(parse('2mons')).toBe(2 * MO);
-    });
-
-    test('month returns MO ms per unit', () => {
-      expect(parse('2month')).toBe(2 * MO);
-    });
-
-    test('months returns MO ms per unit', () => {
-      expect(parse('2months')).toBe(2 * MO);
-    });
-  });
-
-  describe('year aliases', () => {
-    test('y returns Y ms per unit', () => {
-      expect(parse('2y')).toBe(2 * Y);
-    });
-
-    test('yr returns Y ms per unit', () => {
-      expect(parse('2yr')).toBe(2 * Y);
-    });
-
-    test('yrs returns Y ms per unit', () => {
-      expect(parse('2yrs')).toBe(2 * Y);
-    });
-
-    test('year returns Y ms per unit', () => {
-      expect(parse('2year')).toBe(2 * Y);
-    });
-
-    test('years returns Y ms per unit', () => {
-      expect(parse('2years')).toBe(2 * Y);
-    });
+  test.each([
+    // ms aliases (1 ms per unit)
+    ['7ms', 7], ['7msec', 7], ['7msecs', 7], ['7millisecond', 7], ['7milliseconds', 7],
+    // second aliases (1000 ms per unit)
+    ['3s', 3 * S], ['3sec', 3 * S], ['3secs', 3 * S], ['3second', 3 * S], ['3seconds', 3 * S],
+    // minute aliases (60_000 ms per unit)
+    ['2m', 2 * M], ['2min', 2 * M], ['2mins', 2 * M], ['2minute', 2 * M], ['2minutes', 2 * M],
+    // hour aliases (3_600_000 ms per unit)
+    ['2h', 2 * H], ['2hr', 2 * H], ['2hrs', 2 * H], ['2hour', 2 * H], ['2hours', 2 * H],
+    // day aliases (86_400_000 ms per unit)
+    ['2d', 2 * D], ['2day', 2 * D], ['2days', 2 * D],
+    // week aliases (604_800_000 ms per unit)
+    ['2w', 2 * W], ['2week', 2 * W], ['2weeks', 2 * W],
+    // month aliases (Y/12 ms per unit)
+    ['2mo', 2 * MO], ['2mon', 2 * MO], ['2mons', 2 * MO], ['2month', 2 * MO], ['2months', 2 * MO],
+    // year aliases (365.25 days ms per unit)
+    ['2y', 2 * Y], ['2yr', 2 * Y], ['2yrs', 2 * Y], ['2year', 2 * Y], ['2years', 2 * Y],
+  ])('parse("%s") → %d', (input, expected) => {
+    expect(parse(input as string)).toBe(expected);
   });
 });
 

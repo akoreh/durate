@@ -1,11 +1,11 @@
-import { s, m, h, d, mo, y } from './constants';
+import { s, m, h, d, w, mo, y } from './constants';
 
-const n = '(\\d+(?:\\.\\d+)?)';
+const num = '(\\d+(?:\\.\\d+)?)';
 const isoPattern = new RegExp(
-  `^P(?:${n}Y)?(?:${n}M)?(?:${n}W)?(?:${n}D)?(?:T(?:${n}H)?(?:${n}M)?(?:${n}S)?)?$`,
+  `^P(?:${num}Y)?(?:${num}M)?(?:${num}W)?(?:${num}D)?(?:T(?:${num}H)?(?:${num}M)?(?:${num}S)?)?$`,
 );
 
-const f = (v: string | undefined) => +(v || 0);
+const toNum = (v: string | undefined) => +(v || 0);
 
 /**
  * Parse an ISO 8601 duration string (`P1DT12H`, `PT1H30M`) into milliseconds.
@@ -25,14 +25,26 @@ const f = (v: string | undefined) => +(v || 0);
  * ```
  */
 export function parseISO(str: string): number {
-  if (typeof str !== 'string') return NaN;
+  if (typeof str !== 'string') {
+    return NaN;
+  }
   const p = isoPattern.exec(str);
-  if (!p || !(p[1] || p[2] || p[3] || p[4] || p[5] || p[6] || p[7])) return NaN;
+  if (!p || !p.slice(1).some(Boolean)) {
+    return NaN;
+  }
 
-  const result = f(p[1]) * y + f(p[2]) * mo + f(p[3]) * 7 * d + f(p[4]) * d + f(p[5]) * h + f(p[6]) * m + f(p[7]) * s;
+  const result =
+    toNum(p[1]) * y +
+    toNum(p[2]) * mo +
+    toNum(p[3]) * w +
+    toNum(p[4]) * d +
+    toNum(p[5]) * h +
+    toNum(p[6]) * m +
+    toNum(p[7]) * s;
 
-  if (Math.abs(result) > Number.MAX_SAFE_INTEGER) return NaN;
-
+  if (Math.abs(result) > Number.MAX_SAFE_INTEGER) {
+    return NaN;
+  }
   return result;
 }
 
@@ -59,28 +71,34 @@ export function formatISO(ms: number): string {
     throw new Error('Value provided to formatISO() must be a finite number.');
   }
 
-  if (ms === 0) return 'PT0S';
+  if (ms === 0) {
+    return 'PT0S';
+  }
 
   const neg = ms < 0;
-  let r = Math.abs(ms);
+  let remaining = Math.abs(ms);
 
-  const days = Math.floor(r / d);
-  r %= d;
-  const hours = Math.floor(r / h);
-  r %= h;
-  const minutes = Math.floor(r / m);
-  r %= m;
-  const seconds = r / s;
+  const days = Math.floor(remaining / d); remaining %= d;
+  const hours = Math.floor(remaining / h); remaining %= h;
+  const minutes = Math.floor(remaining / m); remaining %= m;
+  const seconds = remaining / s;
 
   let out = neg ? '-P' : 'P';
-
-  if (days > 0) out += `${days}D`;
+  if (days > 0) {
+    out += `${days}D`;
+  }
 
   if (hours > 0 || minutes > 0 || seconds > 0) {
     out += 'T';
-    if (hours > 0) out += `${hours}H`;
-    if (minutes > 0) out += `${minutes}M`;
-    if (seconds > 0) out += `${parseFloat(seconds.toFixed(3))}S`;
+    if (hours > 0) {
+      out += `${hours}H`;
+    }
+    if (minutes > 0) {
+      out += `${minutes}M`;
+    }
+    if (seconds > 0) {
+      out += `${parseFloat(seconds.toFixed(3))}S`;
+    }
   }
 
   return out;

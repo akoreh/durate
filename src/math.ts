@@ -25,7 +25,9 @@ export function add(...args: (Duration | Duration[])[]): number {
   let total = 0;
   for (const v of values) {
     const ms = toMs(v);
-    if (Number.isNaN(ms)) return NaN;
+    if (Number.isNaN(ms)) {
+      return NaN;
+    }
     total += ms;
   }
   return total;
@@ -46,12 +48,18 @@ export function add(...args: (Duration | Duration[])[]): number {
  */
 export function subtract(...args: (Duration | Duration[])[]): number {
   const values = flatten(args);
-  if (values.length === 0) return 0;
+  if (values.length === 0) {
+    return 0;
+  }
   let total = toMs(values[0]);
-  if (Number.isNaN(total)) return NaN;
+  if (Number.isNaN(total)) {
+    return NaN;
+  }
   for (let i = 1; i < values.length; i++) {
     const ms = toMs(values[i]);
-    if (Number.isNaN(ms)) return NaN;
+    if (Number.isNaN(ms)) {
+      return NaN;
+    }
     total -= ms;
   }
   return total;
@@ -74,9 +82,13 @@ export function subtract(...args: (Duration | Duration[])[]): number {
  */
 export function multiply(value: Duration, ...multipliers: number[]): number {
   let result = toMs(value);
-  if (Number.isNaN(result)) return NaN;
+  if (Number.isNaN(result)) {
+    return NaN;
+  }
   for (const n of multipliers) {
-    if (typeof n !== 'number') return NaN;
+    if (typeof n !== 'number') {
+      return NaN;
+    }
     result *= n;
   }
   return result;
@@ -100,9 +112,13 @@ export function multiply(value: Duration, ...multipliers: number[]): number {
  */
 export function divide(value: Duration, ...divisors: number[]): number {
   let result = toMs(value);
-  if (Number.isNaN(result)) return NaN;
+  if (Number.isNaN(result)) {
+    return NaN;
+  }
   for (const n of divisors) {
-    if (typeof n !== 'number' || n === 0) return NaN;
+    if (typeof n !== 'number' || n === 0) {
+      return NaN;
+    }
     result /= n;
   }
   return result;

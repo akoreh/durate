@@ -1,6 +1,14 @@
 import { describe, expect, test } from 'vitest';
 import { toUnit } from '../src';
-import { m, h, d, w, mo, y } from '../src/constants';
+
+// ─── Precomputed constants (duplicated on purpose — test must not trust src) ──
+const s = 1_000;
+const m = 60_000;
+const h = 3_600_000;
+const d = 86_400_000;
+const w = d * 7;
+const y = d * 365.25;
+const mo = y / 12;
 
 describe('toUnit', () => {
   // ── String input ──────────────────────────────────────────────────────────
@@ -177,65 +185,27 @@ describe('toUnit', () => {
   // ── All target unit aliases ───────────────────────────────────────────────
 
   describe('all target unit aliases', () => {
-    test('milliseconds: ms, msec, msecs, millisecond, milliseconds', () => {
-      expect(toUnit(5000, 'ms')).toBe(5000);
-      expect(toUnit(5000, 'msec')).toBe(5000);
-      expect(toUnit(5000, 'msecs')).toBe(5000);
-      expect(toUnit(5000, 'millisecond')).toBe(5000);
-      expect(toUnit(5000, 'milliseconds')).toBe(5000);
-    });
-
-    test('seconds: s, sec, secs, second, seconds', () => {
-      expect(toUnit(60_000, 's')).toBe(60);
-      expect(toUnit(60_000, 'sec')).toBe(60);
-      expect(toUnit(60_000, 'secs')).toBe(60);
-      expect(toUnit(60_000, 'second')).toBe(60);
-      expect(toUnit(60_000, 'seconds')).toBe(60);
-    });
-
-    test('minutes: m, min, mins, minute, minutes', () => {
-      expect(toUnit(3_600_000, 'm')).toBe(60);
-      expect(toUnit(3_600_000, 'min')).toBe(60);
-      expect(toUnit(3_600_000, 'mins')).toBe(60);
-      expect(toUnit(3_600_000, 'minute')).toBe(60);
-      expect(toUnit(3_600_000, 'minutes')).toBe(60);
-    });
-
-    test('hours: h, hr, hrs, hour, hours', () => {
-      expect(toUnit(86_400_000, 'h')).toBe(24);
-      expect(toUnit(86_400_000, 'hr')).toBe(24);
-      expect(toUnit(86_400_000, 'hrs')).toBe(24);
-      expect(toUnit(86_400_000, 'hour')).toBe(24);
-      expect(toUnit(86_400_000, 'hours')).toBe(24);
-    });
-
-    test('days: d, day, days', () => {
-      expect(toUnit(604_800_000, 'd')).toBe(7);
-      expect(toUnit(604_800_000, 'day')).toBe(7);
-      expect(toUnit(604_800_000, 'days')).toBe(7);
-    });
-
-    test('weeks: w, week, weeks', () => {
-      expect(toUnit(1_209_600_000, 'w')).toBe(2);
-      expect(toUnit(1_209_600_000, 'week')).toBe(2);
-      expect(toUnit(1_209_600_000, 'weeks')).toBe(2);
-    });
-
-    test('months: mo, mon, mons, month, months', () => {
-      expect(toUnit(y, 'mo')).toBe(12);
-      expect(toUnit(y, 'mon')).toBe(12);
-      expect(toUnit(y, 'mons')).toBe(12);
-      expect(toUnit(y, 'month')).toBe(12);
-      expect(toUnit(y, 'months')).toBe(12);
-    });
-
-    test('years: y, yr, yrs, year, years', () => {
-      const twoYears = y * 2;
-      expect(toUnit(twoYears, 'y')).toBe(2);
-      expect(toUnit(twoYears, 'yr')).toBe(2);
-      expect(toUnit(twoYears, 'yrs')).toBe(2);
-      expect(toUnit(twoYears, 'year')).toBe(2);
-      expect(toUnit(twoYears, 'years')).toBe(2);
+    test.each([
+      // ms aliases
+      [5000, 'ms', 5000], [5000, 'msec', 5000], [5000, 'msecs', 5000],
+      [5000, 'millisecond', 5000], [5000, 'milliseconds', 5000],
+      // second aliases
+      [60_000, 's', 60], [60_000, 'sec', 60], [60_000, 'secs', 60],
+      [60_000, 'second', 60], [60_000, 'seconds', 60],
+      // minute aliases
+      [h, 'm', 60], [h, 'min', 60], [h, 'mins', 60], [h, 'minute', 60], [h, 'minutes', 60],
+      // hour aliases
+      [d, 'h', 24], [d, 'hr', 24], [d, 'hrs', 24], [d, 'hour', 24], [d, 'hours', 24],
+      // day aliases
+      [w, 'd', 7], [w, 'day', 7], [w, 'days', 7],
+      // week aliases
+      [2 * w, 'w', 2], [2 * w, 'week', 2], [2 * w, 'weeks', 2],
+      // month aliases
+      [y, 'mo', 12], [y, 'mon', 12], [y, 'mons', 12], [y, 'month', 12], [y, 'months', 12],
+      // year aliases
+      [2 * y, 'y', 2], [2 * y, 'yr', 2], [2 * y, 'yrs', 2], [2 * y, 'year', 2], [2 * y, 'years', 2],
+    ])('toUnit(%d, "%s") → %d', (ms, unit, expected) => {
+      expect(toUnit(ms as number, unit as string)).toBe(expected);
     });
   });
 

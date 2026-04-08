@@ -22,11 +22,17 @@ import { unitMap } from './constants';
  */
 export function toUnit(value: string | number, unit: string): number {
   const ms = toMs(value);
-  if (Number.isNaN(ms)) return NaN;
+  if (Number.isNaN(ms)) {
+    return NaN;
+  }
 
-  if (typeof unit !== 'string') return NaN;
+  if (typeof unit !== 'string') {
+    return NaN;
+  }
   const divisor = unitMap[unit.toLowerCase()];
-  if (!divisor) return NaN;
+  if (!divisor) {
+    return NaN;
+  }
 
   return ms / divisor;
 }
