@@ -1,0 +1,12 @@
+
+node_modules/
+dist/
+.stryker-tmp/
+reports/
+docs/
+.claude/
+
+CLAUDE.md
+.DS_Store
+docs-site/.vitepress/dist/
+docs-site/.vitepress/cache/
