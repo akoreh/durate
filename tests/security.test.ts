@@ -700,6 +700,15 @@ describe('security', () => {
     test('template -0 does not get minus prefix', () => {
       expect(format(-0, { template: 'HH:mm:ss' })).toBe('00:00:00');
     });
+
+    test('template exceeding 512 chars throws (O(n^2) DoS prevention)', () => {
+      expect(() => format(1000, { template: '['.repeat(10_000) })).toThrow();
+    });
+
+    test('template at 512 chars does not throw', () => {
+      const tpl = 'H'.repeat(512);
+      expect(() => format(1000, { template: tpl })).not.toThrow();
+    });
   });
 
   describe('precision format attack vectors', () => {

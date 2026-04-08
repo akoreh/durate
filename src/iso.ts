@@ -71,6 +71,10 @@ export function formatISO(ms: number): string {
     throw new Error('Value provided to formatISO() must be a finite number.');
   }
 
+  if (Math.abs(ms) > Number.MAX_SAFE_INTEGER) {
+    throw new Error('Value provided to formatISO() exceeds MAX_SAFE_INTEGER and loses integer precision.');
+  }
+
   if (ms === 0) {
     return 'PT0S';
   }

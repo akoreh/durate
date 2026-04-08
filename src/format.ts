@@ -168,6 +168,9 @@ export function format(ms: number, options?: FormatOptions): string {
   }
 
   if (options?.template) {
+    if (options.template.length > 512) {
+      throw new Error('Template string exceeds maximum length of 512 characters.');
+    }
     return fmtTemplate(ms, options.template);
   }
 

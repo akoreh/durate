@@ -58,7 +58,7 @@ parse('100')                         // 100 (treated as 100ms, NOT seconds)
 
 ### parseStrict
 
-**Compile-time only strictness** — the input is typed as `DurationString` so TypeScript rejects invalid string literals before the code runs. At runtime, `parseStrict` calls `parse` directly and returns `NaN` for unrecognized input (it does not throw). The name refers to type-level strictness, not runtime throwing.
+**Compile-time type strictness with runtime validation** — the input is typed as `DurationString` so TypeScript rejects invalid string literals before the code runs. At runtime, `parseStrict` delegates to `parse()`, which throws a `TypeError` for empty strings, non-string input, strings over 100 characters, and values that exceed `Number.MAX_SAFE_INTEGER`. Unrecognized-but-valid-looking strings return `NaN` as usual. The "strict" in the name refers to type-level strictness, but runtime guards are still active.
 
 ```ts
 import { parseStrict } from 'durate';

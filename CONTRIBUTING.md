@@ -39,7 +39,7 @@ Implement the simplest thing that makes the test green. Don't add features, opti
 ### 5. Verify everything passes
 
 ```bash
-npm test              # 1158+ tests must pass
+npm test              # 1207+ tests must pass
 npm run typecheck     # no TypeScript errors
 npm run lint          # no ESLint errors
 npm run build         # builds ESM, CJS, IIFE

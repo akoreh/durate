@@ -412,6 +412,10 @@ describe('formatISO', () => {
     test('throws for non-number', () => {
       expect(() => formatISO('PT1H' as any)).toThrow('finite number');
     });
+
+    test('throws when value exceeds MAX_SAFE_INTEGER', () => {
+      expect(() => formatISO(Number.MAX_SAFE_INTEGER + 1)).toThrow('MAX_SAFE_INTEGER');
+    });
   });
 
   // ── Large values ──────────────────────────────────────────────────────
