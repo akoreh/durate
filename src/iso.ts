@@ -72,7 +72,9 @@ export function formatISO(ms: number): string {
   }
 
   if (Math.abs(ms) > Number.MAX_SAFE_INTEGER) {
-    throw new Error('Value provided to formatISO() exceeds MAX_SAFE_INTEGER and loses integer precision.');
+    throw new Error(
+      'Value provided to formatISO() exceeds MAX_SAFE_INTEGER and loses integer precision.',
+    );
   }
 
   if (ms === 0) {
@@ -82,9 +84,12 @@ export function formatISO(ms: number): string {
   const neg = ms < 0;
   let remaining = Math.abs(ms);
 
-  const days = Math.floor(remaining / d); remaining %= d;
-  const hours = Math.floor(remaining / h); remaining %= h;
-  const minutes = Math.floor(remaining / m); remaining %= m;
+  const days = Math.floor(remaining / d);
+  remaining %= d;
+  const hours = Math.floor(remaining / h);
+  remaining %= h;
+  const minutes = Math.floor(remaining / m);
+  remaining %= m;
   const seconds = remaining / s;
 
   let out = neg ? '-P' : 'P';

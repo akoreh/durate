@@ -1,8 +1,20 @@
 import { describe, test, expect } from 'vitest';
 import {
-  parse, format, durate, MAX_TIMEOUT,
-  parseISO, formatISO,
-  add, subtract, multiply, divide, gt, lt, eq, gte, lte,
+  parse,
+  format,
+  durate,
+  MAX_TIMEOUT,
+  parseISO,
+  formatISO,
+  add,
+  subtract,
+  multiply,
+  divide,
+  gt,
+  lt,
+  eq,
+  gte,
+  lte,
 } from '../src';
 import { MAX_INPUT_LENGTH } from '../src/constants';
 
@@ -18,7 +30,7 @@ describe('security', () => {
 
     test('constructor — Object constructor is not overwritten', () => {
       parse('constructor');
-      expect(({}).constructor).toBe(Object);
+      expect({}.constructor).toBe(Object);
       expect(Object.constructor).toBe(Function);
     });
 
@@ -26,7 +38,7 @@ describe('security', () => {
       const original = Object.prototype.toString;
       parse('toString');
       expect(Object.prototype.toString).toBe(original);
-      expect(({}).toString()).toBe('[object Object]');
+      expect({}.toString()).toBe('[object Object]');
     });
 
     test('valueOf — Object.prototype.valueOf is still native', () => {
@@ -80,10 +92,18 @@ describe('security', () => {
 
     test('bulk: fresh objects have no new enumerable properties after all payloads', () => {
       const payloads = [
-        '__proto__', 'constructor', 'toString', 'valueOf',
-        'hasOwnProperty', '__defineGetter__', '__defineSetter__',
-        '__lookupGetter__', '__lookupSetter__', 'prototype',
-        '__proto__.polluted', 'constructor.prototype.polluted',
+        '__proto__',
+        'constructor',
+        'toString',
+        'valueOf',
+        'hasOwnProperty',
+        '__defineGetter__',
+        '__defineSetter__',
+        '__lookupGetter__',
+        '__lookupSetter__',
+        'prototype',
+        '__proto__.polluted',
+        'constructor.prototype.polluted',
         '{"__proto__":{"polluted":true}}',
         '{"constructor":{"prototype":{"polluted":true}}}',
       ];
@@ -104,11 +124,19 @@ describe('security', () => {
 
   describe('ReDoS resistance (CVE-2015-8315, CVE-2017-20162 patterns)', { timeout: 500 }, () => {
     test('long digit string (CVE-2015-8315 pattern)', () => {
-      try { parse('9'.repeat(99) + 'h'); } catch { /* MAX_SAFE_INTEGER throw is fine */ }
+      try {
+        parse('9'.repeat(99) + 'h');
+      } catch {
+        /* MAX_SAFE_INTEGER throw is fine */
+      }
     });
 
     test('long decimal (CVE-2017-20162 pattern)', () => {
-      try { parse('.' + '0'.repeat(99)); } catch { /* may throw */ }
+      try {
+        parse('.' + '0'.repeat(99));
+      } catch {
+        /* may throw */
+      }
     });
 
     test('repeated dot-digit', () => {
@@ -140,7 +168,11 @@ describe('security', () => {
     });
 
     test('repeated negative signs', () => {
-      try { parse('-'.repeat(99) + '1ms'); } catch { /* length guard throws */ }
+      try {
+        parse('-'.repeat(99) + '1ms');
+      } catch {
+        /* length guard throws */
+      }
     });
 
     test('leading whitespace flood', () => {
@@ -387,59 +419,59 @@ describe('security', () => {
 
   describe('unicode homoglyph attacks', () => {
     test('fullwidth digits are not parsed as numbers', () => {
-      expect(parse('１h')).toBeNaN();         // U+FF11 fullwidth 1
-      expect(parse('５m')).toBeNaN();         // U+FF15 fullwidth 5
+      expect(parse('１h')).toBeNaN(); // U+FF11 fullwidth 1
+      expect(parse('５m')).toBeNaN(); // U+FF15 fullwidth 5
     });
 
     test('fullwidth space between number and unit returns NaN', () => {
-      expect(parse('1\u3000h')).toBeNaN();   // ideographic space
+      expect(parse('1\u3000h')).toBeNaN(); // ideographic space
     });
 
     test('non-breaking space is not treated as separator', () => {
-      expect(parse('1\u00A0h')).toBeNaN();   // NBSP
+      expect(parse('1\u00A0h')).toBeNaN(); // NBSP
     });
 
     test('en space is not treated as separator', () => {
-      expect(parse('1\u2002h')).toBeNaN();   // en space
+      expect(parse('1\u2002h')).toBeNaN(); // en space
     });
 
     test('em space is not treated as separator', () => {
-      expect(parse('1\u2003h')).toBeNaN();   // em space
+      expect(parse('1\u2003h')).toBeNaN(); // em space
     });
 
     test('thin space is not treated as separator', () => {
-      expect(parse('1\u2009h')).toBeNaN();   // thin space
+      expect(parse('1\u2009h')).toBeNaN(); // thin space
     });
 
     test('zero-width space inside number returns NaN', () => {
-      expect(parse('1\u200B0h')).toBeNaN();  // ZWSP
+      expect(parse('1\u200B0h')).toBeNaN(); // ZWSP
     });
 
     test('zero-width joiner inside unit returns NaN', () => {
-      expect(parse('1\u200Dh')).toBeNaN();   // ZWJ
+      expect(parse('1\u200Dh')).toBeNaN(); // ZWJ
     });
 
     test('RTL override does not trick parser', () => {
-      expect(parse('\u202E1h')).toBeNaN();   // RTL override
+      expect(parse('\u202E1h')).toBeNaN(); // RTL override
     });
 
     test('Arabic-Indic digits are not parsed', () => {
-      expect(parse('١h')).toBeNaN();          // U+0661
-      expect(parse('٥m')).toBeNaN();          // U+0665
+      expect(parse('١h')).toBeNaN(); // U+0661
+      expect(parse('٥m')).toBeNaN(); // U+0665
     });
 
     test('Devanagari digits are not parsed', () => {
-      expect(parse('१h')).toBeNaN();          // U+0967
+      expect(parse('१h')).toBeNaN(); // U+0967
     });
 
     test('superscript digits are not parsed', () => {
-      expect(parse('¹h')).toBeNaN();          // U+00B9
-      expect(parse('²h')).toBeNaN();          // U+00B2
+      expect(parse('¹h')).toBeNaN(); // U+00B9
+      expect(parse('²h')).toBeNaN(); // U+00B2
     });
 
     test('homoglyph latin letters in unit are not matched', () => {
-      expect(parse('1\u043Ch')).toBeNaN();   // Cyrillic м (looks like m)
-      expect(parse('1\u0455')).toBeNaN();    // Cyrillic ѕ (looks like s)
+      expect(parse('1\u043Ch')).toBeNaN(); // Cyrillic м (looks like m)
+      expect(parse('1\u0455')).toBeNaN(); // Cyrillic ѕ (looks like s)
     });
   });
 
@@ -522,7 +554,7 @@ describe('security', () => {
       parse('1h __proto__');
       parse('constructor 1h');
       expect(({} as any).polluted).toBeUndefined();
-      expect(({}).constructor).toBe(Object);
+      expect({}.constructor).toBe(Object);
     });
 
     test('compound with null bytes between segments returns NaN', () => {
@@ -592,7 +624,9 @@ describe('security', () => {
     });
 
     test('compound format with MAX_SAFE_INTEGER + 1 throws', () => {
-      expect(() => format(Number.MAX_SAFE_INTEGER + 1, { compound: true })).toThrow('MAX_SAFE_INTEGER');
+      expect(() => format(Number.MAX_SAFE_INTEGER + 1, { compound: true })).toThrow(
+        'MAX_SAFE_INTEGER',
+      );
     });
 
     test('compound format negative produces correct sign', () => {
@@ -624,7 +658,7 @@ describe('security', () => {
       format(3_600_000, { template: '__proto__' });
       format(3_600_000, { template: 'constructor' });
       expect(({} as any).polluted).toBeUndefined();
-      expect(({}).constructor).toBe(Object);
+      expect({}.constructor).toBe(Object);
     });
 
     test('template with null bytes produces output without crash', () => {
@@ -759,7 +793,7 @@ describe('security', () => {
 
       test('constructor as ISO value does not pollute', () => {
         parseISO('constructor');
-        expect(({}).constructor).toBe(Object);
+        expect({}.constructor).toBe(Object);
       });
 
       test('P__proto__ does not pollute', () => {
@@ -981,8 +1015,11 @@ describe('security', () => {
 
     test('output never contains prototype pollution strings', () => {
       const outputs = [
-        formatISO(0), formatISO(1000), formatISO(-1000),
-        formatISO(86_400_000), formatISO(Number.MAX_SAFE_INTEGER),
+        formatISO(0),
+        formatISO(1000),
+        formatISO(-1000),
+        formatISO(86_400_000),
+        formatISO(Number.MAX_SAFE_INTEGER),
       ];
       for (const o of outputs) {
         expect(o).not.toContain('__proto__');
@@ -1001,7 +1038,7 @@ describe('security', () => {
       parse('PT1H');
       parse('P1D');
       expect(({} as any).polluted).toBeUndefined();
-      expect(({}).constructor).toBe(Object);
+      expect({}.constructor).toBe(Object);
     });
 
     test('invalid ISO does not pollute via fallback path', () => {
@@ -1045,7 +1082,7 @@ describe('security', () => {
 
       test('constructor as duration does not pollute', () => {
         add('constructor', '1h');
-        expect(({}).constructor).toBe(Object);
+        expect({}.constructor).toBe(Object);
       });
 
       test('__proto__ in array does not pollute', () => {
@@ -1258,7 +1295,7 @@ describe('security', () => {
 
       test('constructor as comparison operand does not pollute', () => {
         eq('constructor', 'constructor');
-        expect(({}).constructor).toBe(Object);
+        expect({}.constructor).toBe(Object);
       });
     });
 
@@ -1390,57 +1427,65 @@ describe('security', () => {
   // Exact PoCs from the two known ms vulnerabilities plus defense verification
   // ═══════════════════════════════════════════════════════════════════════════
 
-  describe('CVE-2015-8315 — ReDoS via overlapping quantifiers in number group', { timeout: 500 }, () => {
-    // Vulnerable regex: ((?:\d+)?\.?\d+) — O(N^2) backtracking on digit strings
-    // Our regex: (-?\d*\.?\d+) — same class of overlapping quantifiers
-    // Defense: MAX_INPUT_LENGTH (100 chars) makes worst case < 1ms
-    // Tests use vitest timeout (500ms) instead of performance.now() — no flaky CI.
+  describe(
+    'CVE-2015-8315 — ReDoS via overlapping quantifiers in number group',
+    { timeout: 500 },
+    () => {
+      // Vulnerable regex: ((?:\d+)?\.?\d+) — O(N^2) backtracking on digit strings
+      // Our regex: (-?\d*\.?\d+) — same class of overlapping quantifiers
+      // Defense: MAX_INPUT_LENGTH (100 chars) makes worst case < 1ms
+      // Tests use vitest timeout (500ms) instead of performance.now() — no flaky CI.
 
-    test('exact PoC: "5".repeat(90) + " minutea" (near-match unit suffix)', () => {
-      expect(parse('5'.repeat(90) + ' minutea')).toBeNaN();
-    });
+      test('exact PoC: "5".repeat(90) + " minutea" (near-match unit suffix)', () => {
+        expect(parse('5'.repeat(90) + ' minutea')).toBeNaN();
+      });
 
-    test('near-match unit: "seconda"', () => {
-      expect(parse('1'.repeat(90) + ' seconda')).toBeNaN();
-    });
+      test('near-match unit: "seconda"', () => {
+        expect(parse('1'.repeat(90) + ' seconda')).toBeNaN();
+      });
 
-    test('near-match unit: "hourss"', () => {
-      expect(parse('9'.repeat(92) + ' hourss')).toBeNaN();
-    });
+      test('near-match unit: "hourss"', () => {
+        expect(parse('9'.repeat(92) + ' hourss')).toBeNaN();
+      });
 
-    test('original PoC length (10000 chars) is rejected by length guard', () => {
-      expect(() => parse('5'.repeat(10000) + ' minutea')).toThrow();
-    });
+      test('original PoC length (10000 chars) is rejected by length guard', () => {
+        expect(() => parse('5'.repeat(10000) + ' minutea')).toThrow();
+      });
 
-    test('original PoC length (80000 chars) is rejected by length guard', () => {
-      expect(() => parse('5'.repeat(80000) + ' minutea')).toThrow();
-    });
-  });
+      test('original PoC length (80000 chars) is rejected by length guard', () => {
+        expect(() => parse('5'.repeat(80000) + ' minutea')).toThrow();
+      });
+    },
+  );
 
-  describe('CVE-2017-20162 — ReDoS with reduced (10k) length limit bypass', { timeout: 500 }, () => {
-    // ms 0.7.1-1.0.0 had a 10000-char limit but still ~300ms worst case.
-    // Our 100-char limit makes worst case negligible.
+  describe(
+    'CVE-2017-20162 — ReDoS with reduced (10k) length limit bypass',
+    { timeout: 500 },
+    () => {
+      // ms 0.7.1-1.0.0 had a 10000-char limit but still ~300ms worst case.
+      // Our 100-char limit makes worst case negligible.
 
-    test('exact PoC: "1".repeat(9998) + "Q" is rejected by length guard', () => {
-      expect(() => parse('1'.repeat(9998) + 'Q')).toThrow();
-    });
+      test('exact PoC: "1".repeat(9998) + "Q" is rejected by length guard', () => {
+        expect(() => parse('1'.repeat(9998) + 'Q')).toThrow();
+      });
 
-    test('at-limit payload (100 chars) returns NaN, does not hang', () => {
-      const payload = '1'.repeat(99) + 'Q';
-      expect(payload.length).toBe(100);
-      expect(parse(payload)).toBeNaN();
-    });
+      test('at-limit payload (100 chars) returns NaN, does not hang', () => {
+        const payload = '1'.repeat(99) + 'Q';
+        expect(payload.length).toBe(100);
+        expect(parse(payload)).toBeNaN();
+      });
 
-    test('over-limit digits + near-match unit is rejected', () => {
-      const payload = '9'.repeat(93) + ' minutea'; // 101 chars
-      expect(payload.length).toBeGreaterThan(100);
-      expect(() => parse(payload)).toThrow();
-    });
+      test('over-limit digits + near-match unit is rejected', () => {
+        const payload = '9'.repeat(93) + ' minutea'; // 101 chars
+        expect(payload.length).toBeGreaterThan(100);
+        expect(() => parse(payload)).toThrow();
+      });
 
-    test('at-limit adversarial: 99 digits + non-unit char', () => {
-      expect(parse('3'.repeat(99) + 'Q')).toBeNaN();
-    });
-  });
+      test('at-limit adversarial: 99 digits + non-unit char', () => {
+        expect(parse('3'.repeat(99) + 'Q')).toBeNaN();
+      });
+    },
+  );
 
   describe('CVE defense: MAX_INPUT_LENGTH boundary', () => {
     test('MAX_INPUT_LENGTH is 100 (same as ms v2)', () => {
@@ -1480,31 +1525,35 @@ describe('security', () => {
     });
   });
 
-  describe('CVE defense: regex completes for adversarial inputs within limit', { timeout: 500 }, () => {
-    // If these tests complete, the regex is not catastrophically slow.
-    // If ReDoS triggers, vitest kills the test at 500ms.
+  describe(
+    'CVE defense: regex completes for adversarial inputs within limit',
+    { timeout: 500 },
+    () => {
+      // If these tests complete, the regex is not catastrophically slow.
+      // If ReDoS triggers, vitest kills the test at 500ms.
 
-    test('digits + near-match unit suffixes (worst case for durationPattern)', () => {
-      for (const suffix of [' minutea', ' seconda', ' hourss', ' dayss', ' yearss']) {
-        const payload = '7'.repeat(100 - suffix.length) + suffix;
-        expect(payload.length).toBeLessThanOrEqual(100);
+      test('digits + near-match unit suffixes (worst case for durationPattern)', () => {
+        for (const suffix of [' minutea', ' seconda', ' hourss', ' dayss', ' yearss']) {
+          const payload = '7'.repeat(100 - suffix.length) + suffix;
+          expect(payload.length).toBeLessThanOrEqual(100);
+          expect(parse(payload)).toBeNaN();
+        }
+      });
+
+      test('digits + non-alpha terminator (worst case for \\d+ backtracking)', () => {
+        for (const suffix of ['Q', '!', '#', '?', ')']) {
+          expect(parse('1'.repeat(99) + suffix)).toBeNaN();
+        }
+      });
+
+      test('decimal + digits + near-match', () => {
+        expect(parse('.' + '9'.repeat(91) + ' minutea')).toBeNaN();
+      });
+
+      test('alternating digits and dots at max length', () => {
+        const payload = ('1.2.3.4.5.6.7.8.9.0.'.repeat(4) + '1.2.3.4.5.6.7.8.').slice(0, 100);
         expect(parse(payload)).toBeNaN();
-      }
-    });
-
-    test('digits + non-alpha terminator (worst case for \\d+ backtracking)', () => {
-      for (const suffix of ['Q', '!', '#', '?', ')']) {
-        expect(parse('1'.repeat(99) + suffix)).toBeNaN();
-      }
-    });
-
-    test('decimal + digits + near-match', () => {
-      expect(parse('.' + '9'.repeat(91) + ' minutea')).toBeNaN();
-    });
-
-    test('alternating digits and dots at max length', () => {
-      const payload = ('1.2.3.4.5.6.7.8.9.0.'.repeat(4) + '1.2.3.4.5.6.7.8.').slice(0, 100);
-      expect(parse(payload)).toBeNaN();
-    });
-  });
+      });
+    },
+  );
 });

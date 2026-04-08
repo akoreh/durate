@@ -313,9 +313,7 @@ describe('format: compound skips zero-value middle units', () => {
 describe('format: compound + long + parts combinations', () => {
   test('compound + long: singular and plural', () => {
     const ms = D + 2 * H + M + S;
-    expect(format(ms, { compound: true, long: true })).toBe(
-      '1 day 2 hours 1 minute 1 second',
-    );
+    expect(format(ms, { compound: true, long: true })).toBe('1 day 2 hours 1 minute 1 second');
   });
 
   test('compound + long + parts: 1', () => {
@@ -323,9 +321,7 @@ describe('format: compound + long + parts combinations', () => {
   });
 
   test('compound + long + parts: 2', () => {
-    expect(format(D + 2 * H + M, { compound: true, long: true, parts: 2 })).toBe(
-      '1 day 2 hours',
-    );
+    expect(format(D + 2 * H + M, { compound: true, long: true, parts: 2 })).toBe('1 day 2 hours');
   });
 
   test('compound + long + parts: 3', () => {
@@ -351,9 +347,7 @@ describe('format: compound + long + parts combinations', () => {
   });
 
   test('negative compound + long', () => {
-    expect(format(-(H + 30 * M), { compound: true, long: true })).toBe(
-      '-1 hour 30 minutes',
-    );
+    expect(format(-(H + 30 * M), { compound: true, long: true })).toBe('-1 hour 30 minutes');
   });
 
   test('negative compound + long + parts: 1', () => {

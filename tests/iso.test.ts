@@ -382,9 +382,16 @@ describe('formatISO', () => {
 
   describe('round-trip: formatISO → parseISO', () => {
     const values = [
-      0, 1, 500, 1_000, 60_000, 3_600_000,
-      h + 30 * m, d + 12 * h + 30 * m + 45 * s,
-      2 * d + 6 * h, 7 * d + 3 * h + 15 * m + 30 * s,
+      0,
+      1,
+      500,
+      1_000,
+      60_000,
+      3_600_000,
+      h + 30 * m,
+      d + 12 * h + 30 * m + 45 * s,
+      2 * d + 6 * h,
+      7 * d + 3 * h + 15 * m + 30 * s,
     ];
 
     for (const ms of values) {

@@ -187,23 +187,49 @@ describe('toUnit', () => {
   describe('all target unit aliases', () => {
     test.each([
       // ms aliases
-      [5000, 'ms', 5000], [5000, 'msec', 5000], [5000, 'msecs', 5000],
-      [5000, 'millisecond', 5000], [5000, 'milliseconds', 5000],
+      [5000, 'ms', 5000],
+      [5000, 'msec', 5000],
+      [5000, 'msecs', 5000],
+      [5000, 'millisecond', 5000],
+      [5000, 'milliseconds', 5000],
       // second aliases
-      [60_000, 's', 60], [60_000, 'sec', 60], [60_000, 'secs', 60],
-      [60_000, 'second', 60], [60_000, 'seconds', 60],
+      [60_000, 's', 60],
+      [60_000, 'sec', 60],
+      [60_000, 'secs', 60],
+      [60_000, 'second', 60],
+      [60_000, 'seconds', 60],
       // minute aliases
-      [h, 'm', 60], [h, 'min', 60], [h, 'mins', 60], [h, 'minute', 60], [h, 'minutes', 60],
+      [h, 'm', 60],
+      [h, 'min', 60],
+      [h, 'mins', 60],
+      [h, 'minute', 60],
+      [h, 'minutes', 60],
       // hour aliases
-      [d, 'h', 24], [d, 'hr', 24], [d, 'hrs', 24], [d, 'hour', 24], [d, 'hours', 24],
+      [d, 'h', 24],
+      [d, 'hr', 24],
+      [d, 'hrs', 24],
+      [d, 'hour', 24],
+      [d, 'hours', 24],
       // day aliases
-      [w, 'd', 7], [w, 'day', 7], [w, 'days', 7],
+      [w, 'd', 7],
+      [w, 'day', 7],
+      [w, 'days', 7],
       // week aliases
-      [2 * w, 'w', 2], [2 * w, 'week', 2], [2 * w, 'weeks', 2],
+      [2 * w, 'w', 2],
+      [2 * w, 'week', 2],
+      [2 * w, 'weeks', 2],
       // month aliases
-      [y, 'mo', 12], [y, 'mon', 12], [y, 'mons', 12], [y, 'month', 12], [y, 'months', 12],
+      [y, 'mo', 12],
+      [y, 'mon', 12],
+      [y, 'mons', 12],
+      [y, 'month', 12],
+      [y, 'months', 12],
       // year aliases
-      [2 * y, 'y', 2], [2 * y, 'yr', 2], [2 * y, 'yrs', 2], [2 * y, 'year', 2], [2 * y, 'years', 2],
+      [2 * y, 'y', 2],
+      [2 * y, 'yr', 2],
+      [2 * y, 'yrs', 2],
+      [2 * y, 'year', 2],
+      [2 * y, 'years', 2],
     ])('toUnit(%d, "%s") → %d', (ms, unit, expected) => {
       expect(toUnit(ms as number, unit as string)).toBe(expected);
     });
@@ -434,7 +460,7 @@ describe('toUnit', () => {
 
     test('constructor as value — Object constructor intact', () => {
       toUnit('constructor', 'ms');
-      expect(({}).constructor).toBe(Object);
+      expect({}.constructor).toBe(Object);
       expect(Object.constructor).toBe(Function);
     });
 
@@ -450,7 +476,7 @@ describe('toUnit', () => {
     test('constructor as target unit — returns NaN, Object intact', () => {
       const result = toUnit('1h', 'constructor');
       expect(result).toBeNaN();
-      expect(({}).constructor).toBe(Object);
+      expect({}.constructor).toBe(Object);
     });
 
     test('toString as target unit — Object.prototype.toString intact', () => {
@@ -494,9 +520,16 @@ describe('toUnit', () => {
 
     test('bulk: no new enumerable props after all payloads', () => {
       const payloads = [
-        '__proto__', 'constructor', 'toString', 'valueOf',
-        'hasOwnProperty', '__defineGetter__', '__defineSetter__',
-        'prototype', '__proto__.polluted', 'constructor.prototype',
+        '__proto__',
+        'constructor',
+        'toString',
+        'valueOf',
+        'hasOwnProperty',
+        '__defineGetter__',
+        '__defineSetter__',
+        'prototype',
+        '__proto__.polluted',
+        'constructor.prototype',
       ];
       for (const p of payloads) {
         toUnit(p, 'ms');

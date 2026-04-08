@@ -14,22 +14,55 @@ describe('parse', () => {
   describe('unit parsing', () => {
     test.each([
       // milliseconds
-      ['100', 100], ['500ms', 500], ['100msec', 100], ['100msecs', 100],
-      ['250millisecond', 250], ['250milliseconds', 250],
+      ['100', 100],
+      ['500ms', 500],
+      ['100msec', 100],
+      ['100msecs', 100],
+      ['250millisecond', 250],
+      ['250milliseconds', 250],
       // seconds
-      ['1s', S], ['5sec', 5 * S], ['5secs', 5 * S], ['1second', S], ['2seconds', 2 * S], ['0.5s', 500],
+      ['1s', S],
+      ['5sec', 5 * S],
+      ['5secs', 5 * S],
+      ['1second', S],
+      ['2seconds', 2 * S],
+      ['0.5s', 500],
       // minutes
-      ['1m', M], ['5m', 5 * M], ['1min', M], ['1mins', M], ['1minute', M], ['2minutes', 2 * M], ['15m', 15 * M],
+      ['1m', M],
+      ['5m', 5 * M],
+      ['1min', M],
+      ['1mins', M],
+      ['1minute', M],
+      ['2minutes', 2 * M],
+      ['15m', 15 * M],
       // hours
-      ['1h', H], ['1hr', H], ['1hrs', H], ['1hour', H], ['2hours', 2 * H], ['0.5h', H / 2],
+      ['1h', H],
+      ['1hr', H],
+      ['1hrs', H],
+      ['1hour', H],
+      ['2hours', 2 * H],
+      ['0.5h', H / 2],
       // days
-      ['1d', D], ['1day', D], ['2days', 2 * D], ['7d', 7 * D],
+      ['1d', D],
+      ['1day', D],
+      ['2days', 2 * D],
+      ['7d', 7 * D],
       // weeks
-      ['1w', W], ['1week', W], ['2weeks', 2 * W],
+      ['1w', W],
+      ['1week', W],
+      ['2weeks', 2 * W],
       // months
-      ['1mo', MO], ['1month', MO], ['3months', 3 * MO], ['1mon', MO], ['6mons', 6 * MO],
+      ['1mo', MO],
+      ['1month', MO],
+      ['3months', 3 * MO],
+      ['1mon', MO],
+      ['6mons', 6 * MO],
       // years
-      ['1y', Y], ['1yr', Y], ['1yrs', Y], ['1year', Y], ['2years', 2 * Y],
+      ['1y', Y],
+      ['1yr', Y],
+      ['1yrs', Y],
+      ['1year', Y],
+      ['2years', 2 * Y],
     ])('parse("%s") → %d', (input, expected) => {
       expect(parse(input)).toBe(expected);
     });
@@ -207,21 +240,49 @@ describe('constants verification', () => {
 describe('parse: every unit alias', () => {
   test.each([
     // ms aliases (1 ms per unit)
-    ['7ms', 7], ['7msec', 7], ['7msecs', 7], ['7millisecond', 7], ['7milliseconds', 7],
+    ['7ms', 7],
+    ['7msec', 7],
+    ['7msecs', 7],
+    ['7millisecond', 7],
+    ['7milliseconds', 7],
     // second aliases (1000 ms per unit)
-    ['3s', 3 * S], ['3sec', 3 * S], ['3secs', 3 * S], ['3second', 3 * S], ['3seconds', 3 * S],
+    ['3s', 3 * S],
+    ['3sec', 3 * S],
+    ['3secs', 3 * S],
+    ['3second', 3 * S],
+    ['3seconds', 3 * S],
     // minute aliases (60_000 ms per unit)
-    ['2m', 2 * M], ['2min', 2 * M], ['2mins', 2 * M], ['2minute', 2 * M], ['2minutes', 2 * M],
+    ['2m', 2 * M],
+    ['2min', 2 * M],
+    ['2mins', 2 * M],
+    ['2minute', 2 * M],
+    ['2minutes', 2 * M],
     // hour aliases (3_600_000 ms per unit)
-    ['2h', 2 * H], ['2hr', 2 * H], ['2hrs', 2 * H], ['2hour', 2 * H], ['2hours', 2 * H],
+    ['2h', 2 * H],
+    ['2hr', 2 * H],
+    ['2hrs', 2 * H],
+    ['2hour', 2 * H],
+    ['2hours', 2 * H],
     // day aliases (86_400_000 ms per unit)
-    ['2d', 2 * D], ['2day', 2 * D], ['2days', 2 * D],
+    ['2d', 2 * D],
+    ['2day', 2 * D],
+    ['2days', 2 * D],
     // week aliases (604_800_000 ms per unit)
-    ['2w', 2 * W], ['2week', 2 * W], ['2weeks', 2 * W],
+    ['2w', 2 * W],
+    ['2week', 2 * W],
+    ['2weeks', 2 * W],
     // month aliases (Y/12 ms per unit)
-    ['2mo', 2 * MO], ['2mon', 2 * MO], ['2mons', 2 * MO], ['2month', 2 * MO], ['2months', 2 * MO],
+    ['2mo', 2 * MO],
+    ['2mon', 2 * MO],
+    ['2mons', 2 * MO],
+    ['2month', 2 * MO],
+    ['2months', 2 * MO],
     // year aliases (365.25 days ms per unit)
-    ['2y', 2 * Y], ['2yr', 2 * Y], ['2yrs', 2 * Y], ['2year', 2 * Y], ['2years', 2 * Y],
+    ['2y', 2 * Y],
+    ['2yr', 2 * Y],
+    ['2yrs', 2 * Y],
+    ['2year', 2 * Y],
+    ['2years', 2 * Y],
   ])('parse("%s") → %d', (input, expected) => {
     expect(parse(input as string)).toBe(expected);
   });

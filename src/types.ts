@@ -22,10 +22,7 @@ type UnitAnyCase = Capitalize<Unit> | Uppercase<Unit> | Unit;
  * const c: DurationString = 'garbage';  // compile error
  * ```
  */
-export type DurationString =
-  | `${number}`
-  | `${number}${UnitAnyCase}`
-  | `${number} ${UnitAnyCase}`;
+export type DurationString = `${number}` | `${number}${UnitAnyCase}` | `${number} ${UnitAnyCase}`;
 
 /** Options for {@link format}. */
 export interface FormatOptions {

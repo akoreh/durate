@@ -145,9 +145,7 @@ describe('round-trip: compound', () => {
   });
 
   test('compound long round-trip', () => {
-    expect(format(parse('1h 30m'), { compound: true, long: true })).toBe(
-      '1 hour 30 minutes',
-    );
+    expect(format(parse('1h 30m'), { compound: true, long: true })).toBe('1 hour 30 minutes');
   });
 
   test('parse compound output: parse("1h 30m 25s") = 5_425_000', () => {

@@ -164,7 +164,9 @@ export function format(ms: number, options?: FormatOptions): string {
   }
 
   if (Math.abs(ms) > Number.MAX_SAFE_INTEGER) {
-    throw new Error('Value provided to format() exceeds MAX_SAFE_INTEGER and loses integer precision.');
+    throw new Error(
+      'Value provided to format() exceeds MAX_SAFE_INTEGER and loses integer precision.',
+    );
   }
 
   if (options?.template) {

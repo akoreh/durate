@@ -1,6 +1,10 @@
 import type { DurationString, ParseOptions } from './types';
 import {
-  MAX_TIMEOUT, MAX_INPUT_LENGTH, durationPattern, compoundPattern, unitMap,
+  MAX_TIMEOUT,
+  MAX_INPUT_LENGTH,
+  durationPattern,
+  compoundPattern,
+  unitMap,
 } from './constants';
 import { parseISO } from './iso';
 
