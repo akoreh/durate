@@ -2,7 +2,6 @@ import { describe, expect, test } from 'vitest';
 import { toUnit } from '../src';
 
 // ─── Precomputed constants (duplicated on purpose — test must not trust src) ──
-const s = 1_000;
 const m = 60_000;
 const h = 3_600_000;
 const d = 86_400_000;
