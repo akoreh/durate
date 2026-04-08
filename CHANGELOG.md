@@ -23,6 +23,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Template formatting:** token-based format strings (`"HH:mm:ss"`, `"D[d] H[h]"`)
 - **Units:** years, months, weeks, days, hours, minutes, seconds, milliseconds — all case-insensitive with multiple aliases
 - **Builds:** ESM, CJS, and IIFE browser global from a single package
-- **Zero runtime dependencies
+- **Zero runtime dependencies**
 
 [1.0.0]: https://github.com/akoreh/durate/releases/tag/v1.0.0

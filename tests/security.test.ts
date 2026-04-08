@@ -1015,7 +1015,9 @@ describe('security', () => {
     });
 
     test('ISO parse huge values trigger MAX_SAFE_INTEGER guard', () => {
-      expect(() => parse('P999999999Y')).toThrow('MAX_SAFE_INTEGER');
+      // parseISO now returns NaN for values exceeding MAX_SAFE_INTEGER,
+      // so parse() sees an invalid ISO string and returns NaN (non-strict mode)
+      expect(parse('P999999999Y')).toBeNaN();
     });
   });
 

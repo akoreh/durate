@@ -236,6 +236,11 @@ describe('parseISO', () => {
     test('negative number inside returns NaN', () => {
       expect(parseISO('PT-1H')).toBeNaN();
     });
+
+    test('returns NaN when result exceeds MAX_SAFE_INTEGER', () => {
+      // P999999999Y produces a value far beyond Number.MAX_SAFE_INTEGER
+      expect(parseISO('P999999999Y')).toBeNaN();
+    });
   });
 
   // ── Consistency with parse ────────────────────────────────────────────

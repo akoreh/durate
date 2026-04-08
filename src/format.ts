@@ -85,15 +85,22 @@ function fmtCompound(ms: number, options: FormatOptions): string {
   return (neg ? '-' : '') + parts.join(' ');
 }
 
+const tokenD = /DD?(?![^[]*])/;
+const tokenH = /HH?(?![^[]*])/;
+const tokenM = /mm?(?![^[]*])/;
+const tokenS = /ss?(?![^[]*])/;
+const pad2 = (n: number) => String(n).padStart(2, '0');
+const pad3 = (n: number) => String(n).padStart(3, '0');
+
 function fmtTemplate(ms: number, template: string): string {
   const neg = ms < 0;
   let remaining = Math.abs(ms);
 
   // Detect which tokens are present to decide remainder vs total behavior
-  const hasD = /DD?(?![^[]*])/.test(template);
-  const hasH = /HH?(?![^[]*])/.test(template);
-  const hasM = /mm?(?![^[]*])/.test(template);
-  const hasS = /ss?(?![^[]*])/.test(template);
+  const hasD = tokenD.test(template);
+  const hasH = tokenH.test(template);
+  const hasM = tokenM.test(template);
+  const hasS = tokenS.test(template);
 
   // Extract components as remainders (top-down)
   let days = 0;
@@ -121,9 +128,6 @@ function fmtTemplate(ms: number, template: string): string {
   }
 
   const millis = Math.round(remaining);
-
-  const pad2 = (n: number) => String(n).padStart(2, '0');
-  const pad3 = (n: number) => String(n).padStart(3, '0');
 
   // Process template: replace tokens, preserve bracket-escaped literals
   let result = '';

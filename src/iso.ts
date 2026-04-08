@@ -29,7 +29,11 @@ export function parseISO(str: string): number {
   const p = isoPattern.exec(str);
   if (!p || !(p[1] || p[2] || p[3] || p[4] || p[5] || p[6] || p[7])) return NaN;
 
-  return f(p[1]) * y + f(p[2]) * mo + f(p[3]) * 7 * d + f(p[4]) * d + f(p[5]) * h + f(p[6]) * m + f(p[7]) * s;
+  const result = f(p[1]) * y + f(p[2]) * mo + f(p[3]) * 7 * d + f(p[4]) * d + f(p[5]) * h + f(p[6]) * m + f(p[7]) * s;
+
+  if (Math.abs(result) > Number.MAX_SAFE_INTEGER) return NaN;
+
+  return result;
 }
 
 /**

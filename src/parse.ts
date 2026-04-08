@@ -25,7 +25,7 @@ export function toMs(value: string | number): number {
 function parseCompound(str: string): number {
   compoundPattern.lastIndex = 0;
   let total = 0;
-  let consumedLength = 0;
+  let matchCount = 0;
   let lastIndex = 0;
   let match: RegExpExecArray | null;
 
@@ -38,11 +38,11 @@ function parseCompound(str: string): number {
     const multiplier = unitToMs(match[2]);
     if (multiplier === undefined) return NaN;
     total += n * multiplier;
-    consumedLength++;
+    matchCount++;
     lastIndex = match.index + match[0].length;
   }
 
-  if (consumedLength === 0) return NaN;
+  if (matchCount === 0) return NaN;
 
   // Check trailing content is only whitespace
   const trailing = str.slice(lastIndex);
@@ -60,7 +60,9 @@ function parseCompound(str: string): number {
  * or results exceeding `Number.MAX_SAFE_INTEGER`.
  *
  * @param str - The duration string to parse (e.g. `"1h"`, `"1h 30m"`, `"5 minutes"`, `"100"`).
- * @param options - Optional settings. `unit: 's'` returns seconds instead of milliseconds.
+ * @param options - Optional settings. `unit: 's'` returns seconds instead of milliseconds;
+ *   `strict: true` throws on invalid input instead of returning NaN;
+ *   `safeForTimer: 'throw' | 'clamp'` guards against `setTimeout`/`setInterval` overflow.
  * @returns The parsed duration in milliseconds (default) or seconds.
  *
  * @example

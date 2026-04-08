@@ -229,9 +229,9 @@ format(5_425_000, { template: 'HH:mm:ss' })     // '01:30:25'
 | `mm`  | Minutes (padded) | `01` |
 | `s`   | Seconds     | `1`     |
 | `ss`  | Seconds (padded) | `01` |
-| `S`   | Milliseconds | `500` |
-| `SS`  | Milliseconds (2-digit) | `50` |
-| `SSS` | Milliseconds (padded) | `005` |
+| `S`   | Milliseconds (remainder) | `500` |
+| `SS`  | Centiseconds (ms÷10, padded) | `50` |
+| `SSS` | Milliseconds (zero-padded) | `005` |
 | `[text]` | Literal text | `[h]` → `h` |
 
 Values are remainder-based. If `D` is absent, `H` shows total hours.
@@ -298,7 +298,7 @@ const bad: DurationString = 'garbage';   // compile error
 Or with named exports:
 
 ```diff
-- import { ms, parse, format } from 'ms';
+- import ms from 'ms';
 + import { durate, parse, format, parseISO, formatISO, add, subtract, multiply, divide, gt, lt, eq, gte, lte } from 'durate';
 ```
 
